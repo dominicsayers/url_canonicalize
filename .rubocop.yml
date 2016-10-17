@@ -1,0 +1,11 @@
+---
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: no_comma
+  Enabled: true
+
+StringLiterals:
+  EnforcedStyle: single_quotes
+  Enabled: true
+
+LineLength:
+  Max: 120
