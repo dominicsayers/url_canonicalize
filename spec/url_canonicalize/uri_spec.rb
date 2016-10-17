@@ -1,15 +1,34 @@
-describe URI do
+describe URLCanonicalize::URI do
   let(:host) { 'www.twitter.com' }
   let(:protocol) { 'http' }
   let(:url) { "#{protocol}://#{host}" }
 
-  it 'responds to the canonicalize method' do
-    expect(URI(url)).to respond_to(:canonicalize)
-    expect(URI::HTTP.build(host: host)).to respond_to(:canonicalize)
-    expect(URI::HTTPS.build(host: host)).to respond_to(:canonicalize)
+  it 'accepts a valid URL' do
+    uri = URLCanonicalize::URI.new(url)
+    expect(uri.valid?).to be true
   end
 
-  it 'is the expected class' do
-    expect(URI(url).canonicalize).to be_a(URI::HTTP)
+  it 'raises an exception for an unexpected protocol' do
+    expect do
+      URLCanonicalize::URI.new('mailto:developers@xenapto.com').uri
+    end.to raise_error(
+      URLCanonicalize::Exception::URI, 'mailto:developers@xenapto.com must be http or https'
+    )
+  end
+
+  it 'raises an exception for an malformed URL' do
+    expect do
+      URLCanonicalize::URI.new('http://#').uri
+    end.to raise_error(
+      URLCanonicalize::Exception::URI, 'URI::InvalidURIError: bad URI(absolute but no path): http://#'
+    )
+  end
+
+  it 'raises an exception for a URL without a host' do
+    expect do
+      URLCanonicalize::URI.new('http:///').uri
+    end.to raise_error(
+      URLCanonicalize::Exception::URI, 'Missing host name in http:///'
+    )
   end
 end

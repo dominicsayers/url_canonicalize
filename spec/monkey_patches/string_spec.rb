@@ -3,6 +3,8 @@ describe String do
   let(:protocol) { 'http' }
   let(:url) { "#{protocol}://#{host}" }
 
+  before { allow(URLCanonicalize).to receive(:canonicalize).at_least(:once).and_return(url) }
+
   it 'responds to the canonicalize method' do
     expect(url).to respond_to(:canonicalize)
   end
