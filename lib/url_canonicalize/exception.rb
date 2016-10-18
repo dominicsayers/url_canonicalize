@@ -4,5 +4,6 @@ module URLCanonicalize
   class Exception < RuntimeError
     URI = Class.new(self)
     Redirect = Class.new(self)
+    Failure = Class.new(self)
   end
 end

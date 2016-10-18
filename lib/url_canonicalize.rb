@@ -1,10 +1,16 @@
+require 'uri'
 require 'addressable/uri'
+require 'net/http'
+require 'nokogiri'
+
+autoload :OpenSSL, 'openssl'
 
 # Core methods
 module URLCanonicalize
   autoload :Exception, 'url_canonicalize/exception'
   autoload :HTTP, 'url_canonicalize/http'
   autoload :Request, 'url_canonicalize/request'
+  autoload :Response, 'url_canonicalize/response'
   autoload :URI, 'url_canonicalize/uri'
   autoload :VERSION, 'url_canonicalize/version'
 

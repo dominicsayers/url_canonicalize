@@ -19,7 +19,8 @@ Gem::Specification.new do |s|
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ['lib']
 
-  s.add_dependency 'addressable', '~> 0'
+  s.add_dependency 'addressable', '~> 0' # To normalize URLs
+  s.add_dependency 'nokogiri', '~> 1' # To look for <link rel="canonical" ...> in HTML
 
   s.add_development_dependency 'rake', '~> 11'
   s.add_development_dependency 'rspec', '~> 3'
