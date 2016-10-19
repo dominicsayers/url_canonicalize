@@ -1,0 +1,18 @@
+machine:
+  ruby:
+    version: 2.1.9
+
+dependencies:
+  pre:
+    - echo "export rvm_ignore_gemsets_flag=1" >> ~/.rvmrc
+    - gem install bundler
+  override:
+    - bundle check --path=vendor/bundle || bundle install --path=vendor/bundle --jobs=4 --retry=3 --full-index
+
+test:
+  override:
+    - bundle exec rspec:
+        timeout: 600
+        parallel: true
+        files:
+        - spec/**/*_spec.rb
