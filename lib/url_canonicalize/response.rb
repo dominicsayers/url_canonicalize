@@ -25,7 +25,15 @@ module URLCanonicalize
     end
 
     # It barfed
-    class Failure < Generic
+    class Failure
+      attr_reader :failure_class, :message
+
+      private
+
+      def initialize(failure_class, message)
+        @failure_class = failure_class
+        @message = message
+      end
     end
   end
 end

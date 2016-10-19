@@ -2,7 +2,7 @@ module URLCanonicalize
   # Make an HTTP request
   class Request
     def fetch
-      puts "Fetching #{url} with #{http_method.to_s.upcase}".cyan # debug
+      puts "Fetching #{url} with #{http_method.to_s.upcase}".cyan if ENV['DEBUG']
       handle_response
     end
 
@@ -24,11 +24,7 @@ module URLCanonicalize
     end
 
     def handle_response
-      puts response.class.to_s.white # debug
-
-      response.each_header do |k, v|
-        puts "#{k}: #{v}".yellow # debug
-      end
+      show_response if ENV['DEBUG']
 
       case response
       when Net::HTTPSuccess
@@ -38,6 +34,8 @@ module URLCanonicalize
       else
         handle_failure
       end
+    rescue *NETWORK_EXCEPTIONS => e
+      handle_failure(e.class, e.message)
     end
 
     def look_for_canonical
@@ -55,13 +53,15 @@ module URLCanonicalize
     def handle_redirection
       case response
       when Net::HTTPFound, Net::HTTPMovedTemporarily, Net::HTTPTemporaryRedirect
-        handle_failure
+        self.http_method = :get
+        look_for_canonical
       else
         URLCanonicalize::Response::Redirect.new(response['location'])
       end
     end
 
-    def handle_failure
+    def handle_failure(klass = response.class, message = response.message)
+      URLCanonicalize::Response::Failure.new(klass, message)
     end
 
     def html
@@ -128,5 +128,28 @@ module URLCanonicalize
     def check_http_method
       @http_method = :get if host =~ /(linkedin|crunchbase).com/
     end
+
+    def show_response
+      puts response.class.to_s.white # debug
+
+      response.each_header do |k, v|
+        puts "#{k}: #{v}".yellow # debug
+      end
+    end
+
+    NETWORK_EXCEPTIONS = [
+      EOFError,
+      Errno::ECONNREFUSED,
+      Errno::ECONNRESET,
+      Errno::EHOSTUNREACH,
+      Errno::EINVAL,
+      Errno::ENETUNREACH,
+      Errno::ETIMEDOUT,
+      Net::OpenTimeout,
+      Net::ReadTimeout,
+      OpenSSL::SSL::SSLError,
+      SocketError,
+      Timeout::Error
+    ].freeze
   end
 end

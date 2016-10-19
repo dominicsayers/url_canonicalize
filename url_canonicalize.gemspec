@@ -9,8 +9,9 @@ Gem::Specification.new do |s|
   s.authors       = ['Dominic Sayers']
   s.email         = ['developers@xenapto.com']
   s.summary       = 'Finds the canonical version of a URL'
-  s.description   = 'Rubygem that provides #canonicalize methods for the String, URI::HTTP, URI::HTTPS and '\
-                    'Addressable::URI classes'
+  s.description   = 'Rubygem that finds the canonical version of a URL by '\
+                    'providing #canonicalize methods for the String, URI::HTTP'\
+                    ', URI::HTTPS and Addressable::URI classes'
   s.homepage      = 'https://github.com/Xenapto/url_canonicalize'
   s.license       = 'MIT'
 
@@ -19,7 +20,7 @@ Gem::Specification.new do |s|
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ['lib']
 
-  s.add_dependency 'addressable', '~> 0' # To normalize URLs
+  s.add_dependency 'addressable', '~> 2' # To normalize URLs
   s.add_dependency 'nokogiri', '~> 1' # To look for <link rel="canonical" ...> in HTML
 
   s.add_development_dependency 'rake', '~> 11'
@@ -29,7 +30,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'simplecov', '~> 0'
   s.add_development_dependency 'coveralls', '~> 0'
   #- s.add_development_dependency 'vcr', '~> 2'
-  #- s.add_development_dependency 'webmock', '~> 1'
+  s.add_development_dependency 'webmock', '~> 1'
   s.add_development_dependency 'rubocop', '~> 0'
   s.add_development_dependency 'listen', '~> 3.0', '< 3.1' # Dependency of guard, 3.1 requires Ruby 2.2+
   s.add_development_dependency 'guard', '~> 2'

@@ -55,8 +55,6 @@ module URLCanonicalize
     end
 
     def redirect_loop_detected?
-      # puts "#{response.url} in #{redirect_list}".magenta # debug
-
       if redirect_list.include?(response.url)
         return true if last_known_good
         raise URLCanonicalize::Exception::Redirect, 'Redirect loop detected'
@@ -99,6 +97,7 @@ module URLCanonicalize
 
     def handle_failure
       return true if last_known_good
+      puts "\n#{url}\n#{response.failure_class}\n#{response.message}\n".red # debug
       raise URLCanonicalize::Exception::Failure, "#{response.failure_class}: #{response.message}"
     end
 
@@ -149,7 +148,7 @@ module URLCanonicalize
     def options
       @options ||= {
         open_timeout: 8, # Twitter responds in >5s
-        read_timeout: 20,
+        read_timeout: 15,
         max_redirects: 10
       }
     end

@@ -1,3 +1,4 @@
+# SimpleCov
 unless ENV['NO_SIMPLECOV']
   require 'simplecov'
 
@@ -9,6 +10,16 @@ unless ENV['NO_SIMPLECOV']
   SimpleCov.start { add_filter '/spec/' }
 end
 
+# Webmock
+require 'webmock/rspec'
+WebMock.disable_net_connect!(allow_localhost: true)
+
+WebMock.after_request do |request_signature, response|
+  puts request_signature
+  puts response
+end
+
+# Specs
 require 'url_canonicalize'
 
 RSpec.configure do |config|

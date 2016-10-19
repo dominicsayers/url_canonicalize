@@ -25,7 +25,7 @@ describe URLCanonicalize::HTTP do
   end
 
   it 'detects a redirect loop' do
-    responses = [url, "xxx#{url}", url].map { |u| URLCanonicalize::Response::Redirect.new(u) }
+    responses = [url, "#{url}xxx", url].map { |u| URLCanonicalize::Response::Redirect.new(u) }
     expect(URLCanonicalize::Request).to receive(:new).exactly(3).times.and_return(fetch_double)
     expect(fetch_double).to receive(:fetch).exactly(3).times.and_return(*responses)
     expect { http.fetch }.to raise_error(URLCanonicalize::Exception::Redirect, 'Redirect loop detected')
