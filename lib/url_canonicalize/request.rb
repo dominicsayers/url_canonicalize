@@ -70,7 +70,7 @@ module URLCanonicalize
     end
 
     def canonical_url
-      @canonical_url ||= canonical_url_element['href'] if @canonical_url_element.is_a?(Nokogiri::XML::Element)
+      @canonical_url ||= canonical_url_element['href'] if canonical_url_element.is_a?(Nokogiri::XML::Element)
     end
 
     def uri
