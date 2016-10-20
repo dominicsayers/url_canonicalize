@@ -2,7 +2,6 @@ module URLCanonicalize
   # Make an HTTP request
   class Request
     def fetch
-      puts "Fetching #{url} with #{http_method.to_s.upcase}".cyan if ENV['DEBUG']
       handle_response
     end
 
@@ -24,8 +23,6 @@ module URLCanonicalize
     end
 
     def handle_response
-      show_response if ENV['DEBUG']
-
       case response
       when Net::HTTPSuccess
         look_for_canonical
@@ -127,14 +124,6 @@ module URLCanonicalize
     # only
     def check_http_method
       @http_method = :get if host =~ /(linkedin|crunchbase).com/
-    end
-
-    def show_response
-      puts response.class.to_s.white # debug
-
-      response.each_header do |k, v|
-        puts "#{k}: #{v}".yellow # debug
-      end
     end
 
     NETWORK_EXCEPTIONS = [

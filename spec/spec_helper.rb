@@ -14,11 +14,6 @@ end
 require 'webmock/rspec'
 WebMock.disable_net_connect!(allow_localhost: true)
 
-WebMock.after_request do |request_signature, response|
-  puts request_signature
-  puts response
-end
-
 # Specs
 require 'url_canonicalize'
 

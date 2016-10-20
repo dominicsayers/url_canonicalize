@@ -97,7 +97,6 @@ module URLCanonicalize
 
     def handle_failure
       return true if last_known_good
-      puts "\n#{url}\n#{response.failure_class}\n#{response.message}\n".red # debug
       raise URLCanonicalize::Exception::Failure, "#{response.failure_class}: #{response.message}"
     end
 
