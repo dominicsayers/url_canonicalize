@@ -104,7 +104,7 @@ GEM
     thor (0.19.1)
     tins (1.12.0)
     unicode-display_width (1.1.1)
-    webmock (1.24.6)
+    webmock (2.1.0)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff
@@ -113,19 +113,19 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  coveralls (~> 0)
-  gem-release (~> 0)
-  guard (~> 2)
-  guard-rspec (~> 4)
-  guard-rubocop (~> 1)
+  coveralls
+  gem-release
+  guard
+  guard-rspec
+  guard-rubocop
   listen (~> 3.0, < 3.1)
-  rake (~> 11)
-  rspec (~> 3)
-  rspec_junit_formatter (~> 0)
-  rubocop (~> 0)
-  simplecov (~> 0)
+  rake
+  rspec
+  rspec_junit_formatter
+  rubocop
+  simplecov
   url_canonicalize!
-  webmock (~> 1)
+  webmock
 
 BUNDLED WITH
    1.13.5

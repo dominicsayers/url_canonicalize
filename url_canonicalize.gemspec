@@ -15,25 +15,14 @@ Gem::Specification.new do |s|
   s.homepage      = 'https://github.com/Xenapto/url_canonicalize'
   s.license       = 'MIT'
 
-  s.files         = `git ls-files -z`.split("\x0")
+  s.files = `git ls-files`.split($RS).reject do |file|
+    file =~ /^spec\//
+  end
+
+  s.test_files = []
   s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ['lib']
 
   s.add_dependency 'addressable', '~> 2' # To normalize URLs
   s.add_dependency 'nokogiri', '~> 1' # To look for <link rel="canonical" ...> in HTML
-
-  s.add_development_dependency 'rake', '~> 11'
-  s.add_development_dependency 'rspec', '~> 3'
-  s.add_development_dependency 'rspec_junit_formatter', '~> 0'
-  s.add_development_dependency 'gem-release', '~> 0'
-  s.add_development_dependency 'simplecov', '~> 0'
-  s.add_development_dependency 'coveralls', '~> 0'
-  #- s.add_development_dependency 'vcr', '~> 2'
-  s.add_development_dependency 'webmock', '~> 1'
-  s.add_development_dependency 'rubocop', '~> 0'
-  s.add_development_dependency 'listen', '~> 3.0', '< 3.1' # Dependency of guard, 3.1 requires Ruby 2.2+
-  s.add_development_dependency 'guard', '~> 2'
-  s.add_development_dependency 'guard-rspec', '~> 4'
-  s.add_development_dependency 'guard-rubocop', '~> 1'
 end
