@@ -50,7 +50,7 @@ module URLCanonicalize
       case response
       when Net::HTTPFound, Net::HTTPMovedTemporarily, Net::HTTPTemporaryRedirect
         self.http_method = :get
-        look_for_canonical
+        handle_success
       else
         URLCanonicalize::Response::Redirect.new(response['location'])
       end
