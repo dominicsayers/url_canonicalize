@@ -47,8 +47,6 @@ module URLCanonicalize
     end
 
     def handle_redirection
-      puts response['location'] # debug
-
       case response
       when Net::HTTPFound, Net::HTTPMovedTemporarily, Net::HTTPTemporaryRedirect
         self.http_method = :get
@@ -64,8 +62,6 @@ module URLCanonicalize
     end
 
     def enhanced_response
-      puts canonical_url # debug
-
       if canonical_url
         response_plus = URLCanonicalize::Response::Success.new(canonical_url, response, html)
         URLCanonicalize::Response::CanonicalFound.new(canonical_url, response_plus)
@@ -153,7 +149,6 @@ module URLCanonicalize
       else
         base_uri = uri.dup || ::URI.parse(url)
         base_uri.path = partial_url
-        puts base_uri.to_s # debug
         base_uri.to_s
       end
     end
