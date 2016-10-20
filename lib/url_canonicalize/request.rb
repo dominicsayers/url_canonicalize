@@ -47,12 +47,15 @@ module URLCanonicalize
     end
 
     def handle_redirection
+      puts response['location'] # debug
+
       case response
       when Net::HTTPFound, Net::HTTPMovedTemporarily, Net::HTTPTemporaryRedirect
         self.http_method = :get
         handle_success
       else
-        URLCanonicalize::Response::Redirect.new(response['location'])
+        location = relative_to_absolute(response['location'])
+        URLCanonicalize::Response::Redirect.new(location)
       end
     end
 
@@ -61,6 +64,8 @@ module URLCanonicalize
     end
 
     def enhanced_response
+      puts canonical_url # debug
+
       if canonical_url
         response_plus = URLCanonicalize::Response::Success.new(canonical_url, response, html)
         URLCanonicalize::Response::CanonicalFound.new(canonical_url, response_plus)
@@ -73,12 +78,16 @@ module URLCanonicalize
       @html ||= Nokogiri::HTML response.body
     end
 
-    def canonical_url_element
-      @canonical_url_element ||= html.xpath('//head/link[@rel="canonical"]').first
+    def canonical_url
+      @canonical_url ||= relative_to_absolute(canonical_url_raw)
     end
 
-    def canonical_url
+    def canonical_url_raw
       @canonical_url ||= canonical_url_element['href'] if canonical_url_element.is_a?(Nokogiri::XML::Element)
+    end
+
+    def canonical_url_element
+      @canonical_url_element ||= html.xpath('//head/link[@rel="canonical"]').first
     end
 
     def uri
@@ -133,6 +142,20 @@ module URLCanonicalize
     # only
     def check_http_method
       @http_method = :get if host =~ /(linkedin|crunchbase).com/
+    end
+
+    def relative_to_absolute(partial_url)
+      return unless partial_url
+      partial_uri = ::URI.parse(partial_url)
+
+      if partial_uri.host
+        partial_url # It's already absolute
+      else
+        base_uri = uri.dup || ::URI.parse(url)
+        base_uri.path = partial_url
+        puts base_uri.to_s # debug
+        base_uri.to_s
+      end
     end
 
     NETWORK_EXCEPTIONS = [
