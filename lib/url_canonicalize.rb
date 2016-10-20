@@ -28,3 +28,4 @@ end
 require 'monkey_patches/uri'
 require 'monkey_patches/string'
 require 'monkey_patches/addressable/uri'
+require 'English' # Needed for $LAST_MATCH_INFO
