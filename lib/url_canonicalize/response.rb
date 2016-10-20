@@ -13,14 +13,28 @@ module URLCanonicalize
 
     Redirect = Class.new(Generic)
 
+    # Add HTML to a successful response
+    class Success < Generic
+      attr_reader :response, :html
+
+      private
+
+      def initialize(url, response, html)
+        @response = response
+        @html = html
+        super url
+      end
+    end
+
+    # We found a canonical URL!
     class CanonicalFound < Generic
       attr_reader :response
 
       private
 
       def initialize(url, response)
-        @url = url
         @response = response
+        super url
       end
     end
 

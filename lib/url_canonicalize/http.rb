@@ -14,8 +14,8 @@ module URLCanonicalize
       @uri = nil
     end
 
-    def request(request_object)
-      http.request request_object
+    def request(http_request)
+      http.request http_request
     end
 
     private
@@ -41,7 +41,7 @@ module URLCanonicalize
     # Parse the response
     def parse_response
       case response
-      when Net::HTTPSuccess
+      when URLCanonicalize::Response::Success
         handle_success
       when URLCanonicalize::Response::Redirect
         redirect_loop_detected? || max_redirects_reached?

@@ -2,21 +2,16 @@ describe URLCanonicalize do
   let(:host) { 'www.twitter.com' }
   let(:protocol) { 'http' }
   let(:url) { "#{protocol}://#{host}" }
-
-  let(:http_ok) do
-    h = Net::HTTPOK.new('1.1', '200', 'OK')
-    h.uri = ::URI.parse(url)
-    h
-  end
+  let(:response) { URLCanonicalize::Response::Success.new(url, '', '') }
 
   before do
     fetch_double = double
     expect(URLCanonicalize::Request).to receive(:new).once.and_return(fetch_double)
-    expect(fetch_double).to receive(:fetch).once.and_return(http_ok)
+    expect(fetch_double).to receive(:fetch).once.and_return(response)
   end
 
   it 'returns a Net::HTTPOK' do
-    expect(URLCanonicalize.fetch(url)).to be_a(Net::HTTPOK)
+    expect(URLCanonicalize.fetch(url)).to be_a(URLCanonicalize::Response::Success)
   end
 
   it 'canonicalizes a URL' do

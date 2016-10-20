@@ -4,17 +4,12 @@ describe URLCanonicalize::HTTP do
   let(:url) { "#{protocol}://#{host}" }
   let(:http) { URLCanonicalize::HTTP.new(url) }
   let(:fetch_double) { double }
-
-  let(:http_ok) do
-    h = Net::HTTPOK.new('1.1', '200', 'OK')
-    h.uri = ::URI.parse(url)
-    h
-  end
+  let(:response) { URLCanonicalize::Response::Success.new(url, '', '') }
 
   it 'returns a Net::HTTPOK' do
     expect(URLCanonicalize::Request).to receive(:new).once.and_return(fetch_double)
-    expect(fetch_double).to receive(:fetch).once.and_return(http_ok)
-    expect(http.fetch).to be_a(Net::HTTPOK)
+    expect(fetch_double).to receive(:fetch).once.and_return(response)
+    expect(http.fetch).to be_a(URLCanonicalize::Response::Success)
   end
 
   it 'fails on more than the maximum number of redirects' do

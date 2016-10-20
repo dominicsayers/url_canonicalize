@@ -36,7 +36,7 @@ describe URLCanonicalize::Request do
       case outcome
       when :success
         stub_request(:any, url)
-        expect(URLCanonicalize.fetch(url)).to be_a(Net::HTTPSuccess)
+        expect(URLCanonicalize.fetch(url)).to be_a(URLCanonicalize::Response::Success)
       when :exception_uri
         expect_exception URLCanonicalize::Exception::URI, test
       when :exception_failure

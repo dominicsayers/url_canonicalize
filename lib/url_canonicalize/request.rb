@@ -25,7 +25,7 @@ module URLCanonicalize
     def handle_response
       case response
       when Net::HTTPSuccess
-        look_for_canonical
+        handle_success
       when Net::HTTPRedirection
         handle_redirection
       else
@@ -35,15 +35,14 @@ module URLCanonicalize
       handle_failure(e.class, e.message)
     end
 
-    def look_for_canonical
-      # Look in response Link header
-      if response['link'] =~ /<(?<url>.+)>\s*;\s*rel="canonical"/i
-        URLCanonicalize::Response::CanonicalFound.new($LAST_MATCH_INFO['url'])
-      elsif http_method == :head
+    def handle_success
+      @canonical_url = $LAST_MATCH_INFO['url'] if response['link'] =~ /<(?<url>.+)>\s*;\s*rel="canonical"/i
+
+      if http_method == :head
         self.http_method = :get
         fetch
       else
-        canonical_url ? URLCanonicalize::Response::CanonicalFound.new(canonical_url, response) : response
+        enhanced_response
       end
     end
 
@@ -59,6 +58,15 @@ module URLCanonicalize
 
     def handle_failure(klass = response.class, message = response.message)
       URLCanonicalize::Response::Failure.new(klass, message)
+    end
+
+    def enhanced_response
+      if canonical_url
+        response_plus = URLCanonicalize::Response::Success.new(canonical_url, response, html)
+        URLCanonicalize::Response::CanonicalFound.new(canonical_url, response_plus)
+      else
+        URLCanonicalize::Response::Success.new(url, response, html)
+      end
     end
 
     def html
@@ -117,6 +125,7 @@ module URLCanonicalize
       @http_method = value
       @request = nil
       @response = nil
+      @html = nil
     end
 
     # Some sites treat HEAD requests as suspicious activity and block the

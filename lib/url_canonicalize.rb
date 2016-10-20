@@ -16,7 +16,7 @@ module URLCanonicalize
 
   class << self
     def canonicalize(url)
-      fetch(url).uri.to_s
+      fetch(url).url
     end
 
     def fetch(url)
