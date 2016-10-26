@@ -1,5 +1,7 @@
 # URLCanonicalize
 
+[![Join the chat at https://gitter.im/Xenapto/url_canonicalize](https://badges.gitter.im/Xenapto/url_canonicalize.svg)](https://gitter.im/Xenapto/url_canonicalize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 URLCanonicalize is a Ruby gem that finds the canonical version of a URL. It
 provides `canonicalize` methods for the String, URI::HTTP, URI::HTTPS and
 Addressable::URI classes.
