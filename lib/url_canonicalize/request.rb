@@ -23,6 +23,8 @@ module URLCanonicalize
     end
 
     def handle_response
+      log_response
+
       case response
       when Net::HTTPSuccess
         handle_success
@@ -52,8 +54,11 @@ module URLCanonicalize
         self.http_method = :get
         handle_success
       else
-        location = relative_to_absolute(response['location'])
-        URLCanonicalize::Response::Redirect.new(location)
+        if location
+          URLCanonicalize::Response::Redirect.new(location)
+        else
+          URLCanonicalize::Response::Failure.new(::URI::InvalidURIError, response['location'])
+        end
       end
     end
 
@@ -63,6 +68,7 @@ module URLCanonicalize
 
     def enhanced_response
       if canonical_url
+        puts "  * canonical_url:\t#{canonical_url}" if ENV['DEBUG']
         response_plus = URLCanonicalize::Response::Success.new(canonical_url, response, html)
         URLCanonicalize::Response::CanonicalFound.new(canonical_url, response_plus)
       else
@@ -96,6 +102,10 @@ module URLCanonicalize
 
     def host
       @host ||= uri.host
+    end
+
+    def location
+      @location ||= relative_to_absolute(response['location'])
     end
 
     def request_for_method
@@ -147,10 +157,16 @@ module URLCanonicalize
       if partial_uri.host
         partial_url # It's already absolute
       else
-        base_uri = uri.dup || ::URI.parse(url)
-        base_uri.path = partial_url
-        base_uri.to_s
+        ::URI.join((uri || url), partial_url).to_s
       end
+    rescue ::URI::InvalidURIError
+      nil
+    end
+
+    def log_response
+      puts "#{http_method.upcase} #{url} #{response.code} #{response.message}" if ENV['DEBUG']
+      return unless ENV['DEBUG'].casecmp('headers')
+      response.each { |k, v| puts "  #{k}:\t#{v}"}
     end
 
     NETWORK_EXCEPTIONS = [
@@ -165,7 +181,9 @@ module URLCanonicalize
       Net::ReadTimeout,
       OpenSSL::SSL::SSLError,
       SocketError,
-      Timeout::Error
+      Timeout::Error,
+      Zlib::BufError,
+      Zlib::DataError
     ].freeze
   end
 end

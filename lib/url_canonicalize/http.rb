@@ -20,7 +20,7 @@ module URLCanonicalize
 
     private
 
-    attr_reader :last_known_good
+    attr_accessor :last_known_good
 
     def initialize(raw_url)
       @raw_url = raw_url
@@ -55,6 +55,8 @@ module URLCanonicalize
     end
 
     def redirect_loop_detected?
+      puts 'Redirect' # debug
+
       if redirect_list.include?(response.url)
         return true if last_known_good
         raise URLCanonicalize::Exception::Redirect, 'Redirect loop detected'
@@ -85,7 +87,9 @@ module URLCanonicalize
     end
 
     def handle_canonical_found
-      @last_known_good = response.response
+      puts 'Canonical found' # debug
+
+      self.last_known_good = response.response
       return true if response.url == url || redirect_list.include?(response.url)
       set_url_from_response
       false
@@ -105,7 +109,9 @@ module URLCanonicalize
     end
 
     def handle_success
-      @last_known_good = response
+      puts 'Success' # debug
+
+      self.last_known_good = response
       true
     end
 
