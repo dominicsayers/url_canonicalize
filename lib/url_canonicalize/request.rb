@@ -164,7 +164,9 @@ module URLCanonicalize
     end
 
     def log_response
-      puts "#{http_method.upcase} #{url} #{response.code} #{response.message}" if ENV['DEBUG']
+      return unless ENV['DEBUG']
+      puts "#{http_method.upcase} #{url} #{response.code} #{response.message}"
+
       return unless ENV['DEBUG'].casecmp('headers')
       response.each { |k, v| puts "  #{k}:\t#{v}"}
     end
