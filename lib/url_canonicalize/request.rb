@@ -168,7 +168,7 @@ module URLCanonicalize
       puts "#{http_method.upcase} #{url} #{response.code} #{response.message}"
 
       return unless ENV['DEBUG'].casecmp('headers')
-      response.each { |k, v| puts "  #{k}:\t#{v}"}
+      response.each { |k, v| puts "  #{k}:\t#{v}" }
     end
 
     NETWORK_EXCEPTIONS = [
