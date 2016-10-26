@@ -55,8 +55,6 @@ module URLCanonicalize
     end
 
     def redirect_loop_detected?
-      puts 'Redirect' # debug
-
       if redirect_list.include?(response.url)
         return true if last_known_good
         raise URLCanonicalize::Exception::Redirect, 'Redirect loop detected'
@@ -87,8 +85,6 @@ module URLCanonicalize
     end
 
     def handle_canonical_found
-      puts 'Canonical found' # debug
-
       self.last_known_good = response.response
       return true if response.url == url || redirect_list.include?(response.url)
       set_url_from_response
@@ -109,8 +105,6 @@ module URLCanonicalize
     end
 
     def handle_success
-      puts 'Success' # debug
-
       self.last_known_good = response
       true
     end
