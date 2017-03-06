@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module URI
   # URI having the HTTP protocol
   class HTTP

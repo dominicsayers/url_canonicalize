@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module URLCanonicalize
   # Make an HTTP request
   class Request
@@ -38,7 +39,7 @@ module URLCanonicalize
     end
 
     def handle_success
-      @canonical_url = $LAST_MATCH_INFO['url'] if response['link'] =~ /<(?<url>.+)>\s*;\s*rel="canonical"/i
+      @canonical_url = $LAST_MATCH_INFO['url'] if (response['link'] || '').match?(/<(?<url>.+)>\s*;\s*rel="canonical"/i)
 
       if http_method == :head
         self.http_method = :get
@@ -147,7 +148,7 @@ module URLCanonicalize
     # requester after a few attempts. For these sites we'll use GET requests
     # only
     def check_http_method
-      @http_method = :get if host =~ /(linkedin|crunchbase).com/
+      @http_method = :get if host.match?(/(linkedin|crunchbase).com/)
     end
 
     def relative_to_absolute(partial_url)

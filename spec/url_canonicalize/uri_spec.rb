@@ -22,7 +22,7 @@ describe URLCanonicalize::URI do
     expect do
       URLCanonicalize::URI.parse('http://#')
     end.to raise_error(
-      URLCanonicalize::Exception::URI, 'URI::InvalidURIError: bad URI(absolute but no path): http://#'
+      URLCanonicalize::Exception::URI, 'Missing host name in http:#'
     )
   end
 

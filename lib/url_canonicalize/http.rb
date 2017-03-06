@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module URLCanonicalize
   # Persistent connection for possible repeated requests to the same host
   class HTTP

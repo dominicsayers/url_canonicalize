@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module URLCanonicalize
   # Manage the URL into a URI with local exception handling
   class URI
