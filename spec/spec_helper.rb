@@ -1,6 +1,7 @@
 # SimpleCov
 unless ENV['NO_SIMPLECOV']
   require 'simplecov'
+  require 'coveralls'
 
   if ENV['CIRCLE_ARTIFACTS']
     dir = File.join('..', '..', '..', ENV['CIRCLE_ARTIFACTS'], 'coverage')
@@ -8,6 +9,7 @@ unless ENV['NO_SIMPLECOV']
   end
 
   SimpleCov.start { add_filter '/spec/' }
+  Coveralls.wear! if ENV['COVERALLS_REPO_TOKEN']
 end
 
 # Webmock
