@@ -23,7 +23,9 @@ gem 'url_canonicalize'
 
 ```ruby
 'http://www.twitter.com'.canonicalize # => 'https://twitter.com/'
+
 URI('http://www.twitter.com').canonicalize # => #<URI::HTTP:0x00000008767908 URL:https://twitter.com/>
+
 Addressable::URI.canonicalize('http://www.twitter.com') # => #<Addressable::URI:0x43c9 URI:https://twitter.com/>
 ```
 

@@ -55,7 +55,6 @@ describe URLCanonicalize::Request do
 
   def expect_exception(klass, test)
     expect { URLCanonicalize.fetch(test[:url]) }.to raise_error do |e|
-      puts "+++ #{test[:url]}" # debug
       expect(e).to be_a(klass)
       expect(e.message).to include(test[:message])
       expect(e.message).to include(test[:klass].name) if test.key?(:klass)
