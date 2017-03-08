@@ -6,6 +6,22 @@ module URLCanonicalize
       handle_response
     end
 
+    def location
+      @location ||= relative_to_absolute(response['location'])
+    end
+
+    def with_uri(uri)
+      @uri = uri
+
+      @url = nil
+      @host = nil
+      @response = nil
+      @location = nil
+      @html = nil
+
+      self
+    end
+
     private
 
     attr_reader :http, :http_method
@@ -16,7 +32,12 @@ module URLCanonicalize
     end
 
     def response
-      @response ||= http.request request # Some URLs can throw an exception here
+      @response ||= do_http_request
+    end
+
+    # We can stub this method in testing then call #response any number of times
+    def do_http_request #:nodoc: internal use only
+      http.do_request request # Some URLs can throw an exception here
     end
 
     def request
@@ -51,10 +72,10 @@ module URLCanonicalize
 
     def handle_redirection
       case response
-      when Net::HTTPFound, Net::HTTPMovedTemporarily, Net::HTTPTemporaryRedirect
+      when Net::HTTPFound, Net::HTTPMovedTemporarily, Net::HTTPTemporaryRedirect # Temporary redirection
         self.http_method = :get
         handle_success
-      else
+      else # Permanent redirection
         if location
           URLCanonicalize::Response::Redirect.new(location)
         else
@@ -105,10 +126,6 @@ module URLCanonicalize
       @host ||= uri.host
     end
 
-    def location
-      @location ||= relative_to_absolute(response['location'])
-    end
-
     def request_for_method
       r = base_request
       headers.each { |header_key, header_value| r[header_key] = header_value }
@@ -124,7 +141,7 @@ module URLCanonicalize
       when :get
         Net::HTTP::Get.new uri
       else
-        raise URLCanonicalize::Exception::Request, "Unknown method: #{method}"
+        raise URLCanonicalize::Exception::Request, "Unknown method: #{http_method}"
       end
     end
 
@@ -141,6 +158,7 @@ module URLCanonicalize
       @http_method = value
       @request = nil
       @response = nil
+      @location = nil
       @html = nil
     end
 

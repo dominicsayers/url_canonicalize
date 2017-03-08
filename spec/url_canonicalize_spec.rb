@@ -7,7 +7,8 @@ describe URLCanonicalize do
   before do
     fetch_double = double
     expect(URLCanonicalize::Request).to receive(:new).once.and_return(fetch_double)
-    expect(fetch_double).to receive(:fetch).once.and_return(response)
+    expect(fetch_double).to receive(:fetch).and_return(response)
+    expect(fetch_double).to receive(:with_uri).and_return(fetch_double)
   end
 
   it 'returns a Net::HTTPOK' do

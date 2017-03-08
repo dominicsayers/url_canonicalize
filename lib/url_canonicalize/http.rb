@@ -15,7 +15,7 @@ module URLCanonicalize
       @uri = nil
     end
 
-    def request(http_request)
+    def do_request(http_request)
       http.request http_request
     end
 
@@ -29,13 +29,26 @@ module URLCanonicalize
 
     # Fetch the response
     def response
-      @response ||= Request.new(self).fetch
+      @response ||= fetch_response
+    end
+
+    def response_url
+      @response_url ||= response.url
+    end
+
+    def request
+      @request ||= Request.new(self)
+    end
+
+    def fetch_response
+      request.with_uri(uri).fetch
     end
 
     # Parse the response, and clear the response ready to follow the next redirect
     def handle_response
       result = parse_response
       @response = nil
+      @response_url = nil
       result
     end
 
@@ -56,12 +69,12 @@ module URLCanonicalize
     end
 
     def redirect_loop_detected?
-      if redirect_list.include?(response.url)
+      if redirect_list.include?(response_url)
         return true if last_known_good
         raise URLCanonicalize::Exception::Redirect, 'Redirect loop detected'
       end
 
-      redirect_list << response.url
+      redirect_list << response_url
       increment_redirects
       set_url_from_response
       false
@@ -87,13 +100,13 @@ module URLCanonicalize
 
     def handle_canonical_found
       self.last_known_good = response.response
-      return true if response.url == url || redirect_list.include?(response.url)
+      return true if response_url == url || redirect_list.include?(response_url)
       set_url_from_response
       false
     end
 
     def set_url_from_response
-      self.url = response.url
+      self.url = response_url
     end
 
     def handle_failure

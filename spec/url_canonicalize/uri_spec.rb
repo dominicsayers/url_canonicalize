@@ -33,4 +33,12 @@ describe URLCanonicalize::URI do
       URLCanonicalize::Exception::URI, 'Missing host name in http:/'
     )
   end
+
+  it 'raises an exception for a URL that ::URI raises an exception for' do
+    expect do
+      URLCanonicalize::URI.parse("http://\xFF")
+    end.to raise_error(
+      URLCanonicalize::Exception::URI, 'URI::InvalidURIError: URI must be ascii only "http://\xFF"'
+    )
+  end
 end
