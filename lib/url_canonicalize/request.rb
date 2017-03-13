@@ -166,7 +166,7 @@ module URLCanonicalize
     # requester after a few attempts. For these sites we'll use GET requests
     # only
     def check_http_method
-      @http_method = :get if host.match?(/(linkedin|crunchbase).com/)
+      @http_method = :get if /(linkedin|crunchbase).com/ =~ host
     end
 
     def relative_to_absolute(partial_url)

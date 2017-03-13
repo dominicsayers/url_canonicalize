@@ -4,6 +4,9 @@ AllCops:
     - '*.gemspec'
     - 'spec/**/*'
 
+Performance/RegexpMatch:
+  Enabled: false # match? is only available in Ruby 2.4+
+
 Style/TrailingCommaInArguments:
   EnforcedStyleForMultiline: no_comma
   Enabled: true
