@@ -4,8 +4,7 @@ module URLCanonicalize
   class URI
     class << self
       def parse(url)
-        # uri = ::URI.parse decorate(url)
-        uri = ::URI.parse url
+        uri = ::URI.parse decorate(url)
         uri if valid? uri
       rescue ::URI::InvalidURIError => e
         new_exception = URLCanonicalize::Exception::URI.new("#{e.class}: #{e.message}")
