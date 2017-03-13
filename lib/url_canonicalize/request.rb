@@ -60,7 +60,7 @@ module URLCanonicalize
     end
 
     def handle_success
-      @canonical_url = $LAST_MATCH_INFO['url'] if (response['link'] || '').match?(/<(?<url>.+)>\s*;\s*rel="canonical"/i)
+      @canonical_url = $LAST_MATCH_INFO['url'] if /<(?<url>.+)>\s*;\s*rel="canonical"/i =~ (response['link'] || '')
 
       if http_method == :head
         self.http_method = :get
