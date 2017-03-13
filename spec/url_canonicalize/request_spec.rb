@@ -11,6 +11,18 @@ describe URLCanonicalize::Request do
       URLCanonicalize.fetch('http://twitter.com')
     end
 
+    it 'logs the response if required' do
+      responses = [
+        Net::HTTPOK.new('1.1', '200', ''),
+        Net::HTTPOK.new('1.1', '200', '')
+      ]
+
+      ENV['DEBUG'] = 'true'
+      expect_any_instance_of(Net::HTTPResponse).to receive(:body).and_return('')
+      expect_any_instance_of(URLCanonicalize::Request).to receive(:do_http_request).and_return(*responses)
+      URLCanonicalize.fetch('https://twitter.com')
+    end
+
     it 'follows permanent redirections' do
       url = 'http://twitter.com'
       canonical_url = 'https://twitter.com'
