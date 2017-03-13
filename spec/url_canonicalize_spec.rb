@@ -1,6 +1,6 @@
 describe URLCanonicalize do
   let(:host) { 'www.twitter.com' }
-  let(:protocol) { 'http' }
+  let(:protocol) { 'https' }
   let(:url) { "#{protocol}://#{host}" }
   let(:response) { URLCanonicalize::Response::Success.new(url, '', '') }
 
@@ -11,11 +11,15 @@ describe URLCanonicalize do
     expect(fetch_double).to receive(:with_uri).and_return(fetch_double)
   end
 
-  it 'returns a Net::HTTPOK' do
+  it 'returns successfully for a complete URL' do
     expect(URLCanonicalize.fetch(url)).to be_a(URLCanonicalize::Response::Success)
   end
 
+  it 'returns successfully for a host name' do
+    expect(URLCanonicalize.fetch(host)).to be_a(URLCanonicalize::Response::Success)
+  end
+
   it 'canonicalizes a URL' do
-    expect(URLCanonicalize.canonicalize(url)).to eq(url)
+    expect(url.canonicalize).to eq(url)
   end
 end

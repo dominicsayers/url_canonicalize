@@ -4,8 +4,9 @@ module URLCanonicalize
   class URI
     class << self
       def parse(url)
-        uri = ::URI.parse(url)
-        uri if valid?(uri)
+        # uri = ::URI.parse decorate(url)
+        uri = ::URI.parse url
+        uri if valid? uri
       rescue ::URI::InvalidURIError => e
         new_exception = URLCanonicalize::Exception::URI.new("#{e.class}: #{e.message}")
         new_exception.set_backtrace e.backtrace
@@ -20,7 +21,13 @@ module URLCanonicalize
         true
       end
 
+      def decorate(url)
+        return url if url.include? COLON
+        "http://#{url}" # Add protocol if we just receive a host name
+      end
+
       VALID_CLASSES = [::URI::HTTP, ::URI::HTTPS].freeze
+      COLON = ':'
     end
   end
 end
