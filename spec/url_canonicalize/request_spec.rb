@@ -6,7 +6,7 @@ describe URLCanonicalize::Request do
         Net::HTTPOK.new('1.1', '200', '')
       ]
 
-      expect_any_instance_of(Net::HTTPResponse).to receive(:body).and_return('')
+      responses.each { |response| expect(response).to receive(:body).and_return('') }
       expect_any_instance_of(URLCanonicalize::Request).to receive(:do_http_request).and_return(*responses)
       URLCanonicalize.fetch('http://twitter.com')
     end
@@ -18,7 +18,7 @@ describe URLCanonicalize::Request do
       ]
 
       ENV['DEBUG'] = 'true'
-      expect_any_instance_of(Net::HTTPResponse).to receive(:body).and_return('')
+      responses.each { |response| expect(response).to receive(:body).and_return('') }
       expect_any_instance_of(URLCanonicalize::Request).to receive(:do_http_request).and_return(*responses)
       URLCanonicalize.fetch('https://twitter.com')
     end
@@ -33,11 +33,9 @@ describe URLCanonicalize::Request do
       response['location'] = canonical_url
       canonical_response = Net::HTTPOK.new('1.1', '200', '')
 
-      expect_any_instance_of(Net::HTTPResponse).to receive(:body).and_return('')
+      expect(canonical_response).to receive(:body).twice.and_return('')
       expect(URLCanonicalize::HTTP).to receive(:new).and_return(http)
-
       expect(http).to receive(:do_request).and_return(response, canonical_response, canonical_response)
-      expect(http).to receive(:fetch_response).and_return(request.fetch, request.with_uri(URI.parse(canonical_url)).fetch)
 
       expect(URLCanonicalize.canonicalize(url)).to eq(canonical_url)
     end
@@ -54,11 +52,9 @@ describe URLCanonicalize::Request do
       response['location'] = relative_path
       canonical_response = Net::HTTPOK.new('1.1', '200', '')
 
-      expect_any_instance_of(Net::HTTPResponse).to receive(:body).and_return('')
+      expect(canonical_response).to receive(:body).twice.and_return('')
       expect(URLCanonicalize::HTTP).to receive(:new).and_return(http)
-
       expect(http).to receive(:do_request).and_return(response, canonical_response, canonical_response)
-      expect(http).to receive(:fetch_response).and_return(request.fetch, request.with_uri(URI.parse(request.location)).fetch)
 
       expect(URLCanonicalize.canonicalize(url)).to eq(canonical_url)
     end
@@ -73,9 +69,7 @@ describe URLCanonicalize::Request do
       response['location'] = canonical_url
 
       expect(URLCanonicalize::HTTP).to receive(:new).and_return(http)
-
       expect(http).to receive(:do_request).and_return(response)
-      expect(http).to receive(:fetch_response).and_return(request.fetch)
 
       expect { URLCanonicalize.fetch(url) }.to raise_error(URLCanonicalize::Exception::Failure)
     end
@@ -91,8 +85,7 @@ describe URLCanonicalize::Request do
 
       expect(URLCanonicalize::HTTP).to receive(:new).and_return(http)
       expect(response).to receive(:body).and_return(html, '')
-      expect(http).to receive(:do_request).and_return(response, response, response)
-      expect(http).to receive(:fetch_response).and_return(request.fetch, request.with_uri(URI.parse(canonical_url)).fetch)
+      expect(http).to receive(:do_request).twice.and_return(response)
 
       expect(URLCanonicalize.canonicalize(url)).to eq(canonical_url)
     end

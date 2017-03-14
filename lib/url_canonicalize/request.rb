@@ -15,6 +15,7 @@ module URLCanonicalize
 
       @url = nil
       @host = nil
+      @request = nil
       @response = nil
       @location = nil
       @html = nil
@@ -60,20 +61,17 @@ module URLCanonicalize
     end
 
     def handle_success
-      @canonical_url = $LAST_MATCH_INFO['url'] if /<(?<url>.+)>\s*;\s*rel="canonical"/i =~ (response['link'] || '')
+      @canonical_url = $LAST_MATCH_INFO['url'] if (response['link'] || '') =~ /<(?<url>.+)>\s*;\s*rel="canonical"/i
 
-      if http_method == :head
-        self.http_method = :get
-        fetch
-      else
-        enhanced_response
-      end
+      return enhanced_response if canonical_url || http_method == :get
+
+      self.http_method = :get
+      fetch
     end
 
     def handle_redirection
       case response
       when Net::HTTPFound, Net::HTTPMovedTemporarily, Net::HTTPTemporaryRedirect # Temporary redirection
-        self.http_method = :get
         handle_success
       else # Permanent redirection
         if location
