@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # Core methods
 module URLCanonicalize
   # Local exception classes to make handling exceptions easier

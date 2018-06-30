@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module URLCanonicalize
   # The response from an HTTP request
   module Response
