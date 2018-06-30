@@ -1,52 +1,19 @@
 ---
 AllCops:
+  DisplayStyleGuide: true
+  DisplayCopNames: true
+  TargetRubyVersion: 2.2
   Exclude:
     - '*.gemspec'
-    - 'spec/**/*'
+    - spec/**/*
 
-Performance/RegexpMatch:
-  Enabled: false # match? is only available in Ruby 2.4+
 
-Style/TrailingCommaInArguments:
-  EnforcedStyleForMultiline: no_comma
-  Enabled: true
-
-StringLiterals:
-  EnforcedStyle: single_quotes
-  Enabled: true
-
-LineLength:
-  Max: 120
-  Exclude:
-    - 'spec/**/*'
-
-MethodLength:
-  Max: 12
-
-DotPosition:
+Layout/DotPosition:
   Description: 'Checks the position of the dot in multi-line method calls.'
   EnforcedStyle: leading
   Enabled: true
 
-ClassAndModuleChildren:
-  Description: 'Checks style of children classes and modules.'
-  EnforcedStyle: nested
-  Enabled: true
-
-Documentation:
-  Description: 'Document classes and non-namespace modules.'
-  Enabled: false
-
-FileName:
-  Description: 'Use snake_case for source file names.'
-  Enabled: true
-
-Style/SymbolArray:
-  Description: 'Use %i or %I for arrays of symbols.'
-  StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#percent-i'
-  Enabled: false # Only available in Ruby 2.0+
-
-Style/ExtraSpacing:
+Layout/ExtraSpacing:
   Description: 'Do not use unnecessary spacing.'
   Enabled: true
 
@@ -57,3 +24,37 @@ Lint/LiteralInInterpolation:
 Metrics/ClassLength:
   CountComments: false  # count full line comments?
   Max: 200
+
+Metrics/MethodLength:
+  Max: 12
+
+Metrics/LineLength:
+  Max: 120
+  Exclude:
+    - spec/**/*
+
+Naming/FileName:
+  Description: 'Use snake_case for source file names.'
+  Enabled: true
+
+Style/ClassAndModuleChildren:
+  Description: 'Checks style of children classes and modules.'
+  EnforcedStyle: nested
+  Enabled: true
+
+Style/Documentation:
+  Description: 'Document classes and non-namespace modules.'
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+  Enabled: true
+
+Style/SymbolArray:
+  Description: 'Use %i or %I for arrays of symbols.'
+  StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#percent-i'
+  Enabled: false # Only available in Ruby 2.0+
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: no_comma
+  Enabled: true
