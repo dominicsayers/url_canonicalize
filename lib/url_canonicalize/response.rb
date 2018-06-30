@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module URLCanonicalize
   # The response from an HTTP request
   module Response
@@ -17,6 +18,10 @@ module URLCanonicalize
     # Add HTML to a successful response
     class Success < Generic
       attr_reader :response, :html
+
+      def xml
+        @xml ||= Nokogiri::XML response.body
+      end
 
       private
 

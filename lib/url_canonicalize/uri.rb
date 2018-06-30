@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module URLCanonicalize
   # Manage the URL into a URI with local exception handling
   class URI
@@ -26,7 +27,7 @@ module URLCanonicalize
       end
 
       VALID_CLASSES = [::URI::HTTP, ::URI::HTTPS].freeze
-      COLON = ':'
+      COLON = ':'.freeze
     end
   end
 end
