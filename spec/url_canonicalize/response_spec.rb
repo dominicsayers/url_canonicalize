@@ -17,6 +17,11 @@ describe URLCanonicalize::Response::Redirect do
       expect(response.response).to eq('response')
       expect(response.html).to eq('html')
     end
+
+    it 'can respond with xml' do
+      response = URLCanonicalize::Response::Success.new(url, Struct.new(:body).new('foo'), 'html')
+      expect(response.xml).to be_a(Nokogiri::XML::Document)
+    end
   end
 
   describe URLCanonicalize::Response::CanonicalFound do

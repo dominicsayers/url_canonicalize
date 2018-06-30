@@ -19,6 +19,10 @@ module URLCanonicalize
     class Success < Generic
       attr_reader :response, :html
 
+      def xml
+        @xml ||= Nokogiri::XML response.body
+      end
+
       private
 
       def initialize(url, response, html)
