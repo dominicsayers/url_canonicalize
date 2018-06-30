@@ -23,6 +23,6 @@ Gem::Specification.new do |s|
   s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.require_paths = ['lib']
 
-  s.add_dependency 'addressable', '~> 2' # To normalize URLs
-  s.add_dependency 'nokogiri', '>= 1.8.2' # To look for <link rel="canonical" ...> in HTML
+  s.add_runtime_dependency 'addressable', '~> 2' # To normalize URLs
+  s.add_runtime_dependency 'nokogiri', '~> 1.8', '>= 1.8.2' # To look for <link rel="canonical" ...> in HTML
 end

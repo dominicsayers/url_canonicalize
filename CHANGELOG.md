@@ -1,5 +1,16 @@
 # Change Log
 
+## [v0.2](https://github.com/dominicsayers/url_canonicalize/tree/v0.2) (2018-06-30)
+[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.15...v0.2)
+
+**Implemented enhancements:**
+
+- Feature: return a Nokogiri XML document if requested [\#5](https://github.com/dominicsayers/url_canonicalize/issues/5)
+
+**Merged pull requests:**
+
+- Version 0.2 [\#6](https://github.com/dominicsayers/url_canonicalize/pull/6) ([dominicsayers](https://github.com/dominicsayers))
+
 ## [v0.1.15](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.15) (2017-03-14)
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.14...v0.1.15)
 
