@@ -10,10 +10,10 @@ group :static_code_analysis do
 end
 
 group :test do
-  gem 'coveralls', require: false
+  gem 'coveralls-ruby', require: false
   gem 'rspec'
   gem 'rspec_junit_formatter'
-  gem 'simplecov', '~> 0.13'
+  gem 'simplecov'
   gem 'webmock'
 end
 
