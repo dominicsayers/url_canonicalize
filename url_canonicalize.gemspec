@@ -1,5 +1,6 @@
-# coding: utf-8
-lib = File.expand_path('../lib', __FILE__)
+# frozen_string_literal: true
+
+lib = File.expand_path('lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'url_canonicalize/version'
 
@@ -15,9 +16,9 @@ Gem::Specification.new do |s|
   s.homepage      = 'https://github.com/dominicsayers/url_canonicalize'
   s.license       = 'MIT'
 
-  s.files = `git ls-files`.split($RS).reject do |file|
-    file =~ /^spec\//
-  end
+  s.required_ruby_version = '>= 2.6.0'
+
+  s.files = `git ls-files`.split($RS).grep_v(%r{^spec/})
 
   s.test_files = []
   s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
@@ -25,4 +26,5 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency 'addressable', '~> 2' # To normalize URLs
   s.add_runtime_dependency 'nokogiri', '>= 1.13' # To look for <link rel="canonical" ...> in HTML
+  s.metadata['rubygems_mfa_required'] = 'true'
 end
