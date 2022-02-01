@@ -3,6 +3,7 @@ AllCops:
   DisplayStyleGuide: true
   DisplayCopNames: true
   TargetRubyVersion: 2.5
+  NewCops: enable
   Exclude:
     - '*.gemspec'
     - spec/**/*
@@ -17,6 +18,11 @@ Layout/ExtraSpacing:
   Description: 'Do not use unnecessary spacing.'
   Enabled: true
 
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - spec/**/*
+
 Lint/LiteralInInterpolation:
   Description: 'Avoid interpolating literals in strings'
   AutoCorrect: true
@@ -27,11 +33,6 @@ Metrics/ClassLength:
 
 Metrics/MethodLength:
   Max: 12
-
-Metrics/LineLength:
-  Max: 120
-  Exclude:
-    - spec/**/*
 
 Naming/FileName:
   Description: 'Use snake_case for source file names.'
