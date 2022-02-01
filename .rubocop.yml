@@ -4,9 +4,6 @@ AllCops:
   DisplayCopNames: true
   TargetRubyVersion: 2.6
   NewCops: enable
-  Exclude:
-    - spec/**/*
-
 
 Layout/DotPosition:
   Description: 'Checks the position of the dot in multi-line method calls.'
