@@ -2,7 +2,7 @@
 AllCops:
   DisplayStyleGuide: true
   DisplayCopNames: true
-  TargetRubyVersion: 2.2
+  TargetRubyVersion: 2.5
   Exclude:
     - '*.gemspec'
     - spec/**/*
