@@ -23,4 +23,4 @@ workflows:
           # cribbed from http://mikebian.co/running-tests-against-multiple-ruby-versions-using-circleci/
           matrix:
             parameters:
-              ruby-version: ["2.5", "2.6", "2.7", "3.0", "3.1"]
+              ruby-version: ["2.6", "2.7", "3.0", "3.1"]
