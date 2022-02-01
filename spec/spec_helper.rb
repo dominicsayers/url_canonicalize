@@ -9,7 +9,7 @@ unless ENV['NO_SIMPLECOV']
   end
 
   SimpleCov.start { add_filter '/spec/' }
-  Coveralls.wear! if ENV['COVERALLS_REPO_TOKEN']
+  Coveralls.wear! if ENV['COVERALLS_REPO_TOKEN'] && Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.1')
 end
 
 # Webmock
