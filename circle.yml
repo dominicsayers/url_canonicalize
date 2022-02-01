@@ -1,16 +1,26 @@
-machine:
-  ruby:
-    version: 2.4.0
-dependencies:
-  pre:
-    - echo "export rvm_ignore_gemsets_flag=1" >> ~/.rvmrc
-    - gem install bundler
-  override:
-    - bundle check --path=vendor/bundle || bundle install --path=vendor/bundle --jobs=4 --retry=3 --full-index
-test:
-  override:
-    - bundle exec rspec:
-        timeout: 600
-        parallel: true
-        files:
-        - spec/**/*_spec.rb
+version: 2.1
+orbs:
+  ruby: circleci/ruby@1.1
+jobs:
+  test:
+    parameters:
+      ruby-version:
+        type: string
+    docker:
+      - image: cimg/ruby:<< parameters.ruby-version >>
+    parallelism: 3
+    steps:
+      - checkout
+      - ruby/install-deps
+      - run:
+          name: Run tests
+          command: bundle exec rspec
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test:
+          # cribbed from http://mikebian.co/running-tests-against-multiple-ruby-versions-using-circleci/
+          matrix:
+            parameters:
+              ruby-version: ["2.5", "2.6", "2.7", "3.0", "3.1"]
