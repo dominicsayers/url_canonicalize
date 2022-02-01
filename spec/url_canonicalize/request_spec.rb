@@ -30,7 +30,6 @@ describe URLCanonicalize::Request do
       canonical_url = 'https://twitter.com'
 
       http = URLCanonicalize::HTTP.new(url)
-      request = URLCanonicalize::Request.new(http)
       response = Net::HTTPPermanentRedirect.new('1.1', '301', '')
       response['location'] = canonical_url
       canonical_response = Net::HTTPOK.new('1.1', '200', '')
@@ -46,10 +45,8 @@ describe URLCanonicalize::Request do
       url = 'http://twitter.com'
       relative_path = '/relative_path'
       canonical_url = "#{url}#{relative_path}"
-      uri = URI.parse("#{canonical_url}/fake")
 
       http = URLCanonicalize::HTTP.new(url)
-      request = URLCanonicalize::Request.new(http)
       response = Net::HTTPPermanentRedirect.new('1.1', '301', '')
       response['location'] = relative_path
       canonical_response = Net::HTTPOK.new('1.1', '200', '')
@@ -66,7 +63,6 @@ describe URLCanonicalize::Request do
       canonical_url = "https://\xFF"
 
       http = URLCanonicalize::HTTP.new(url)
-      request = URLCanonicalize::Request.new(http)
       response = Net::HTTPPermanentRedirect.new('1.1', '301', '')
       response['location'] = canonical_url
 
@@ -82,7 +78,6 @@ describe URLCanonicalize::Request do
       html = "<html><head><link rel=\"canonical\" href=\"#{canonical_url}\" /></head></html>"
 
       http = URLCanonicalize::HTTP.new(url)
-      request = URLCanonicalize::Request.new(http)
       response = Net::HTTPOK.new('1.1', '200', '')
 
       expect(URLCanonicalize::HTTP).to receive(:new).and_return(http)
