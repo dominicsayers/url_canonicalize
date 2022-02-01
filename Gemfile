@@ -4,6 +4,10 @@ source 'https://rubygems.org'
 
 gemspec
 
+group :static_code_analysis do
+  gem 'rubocop', require: false
+end
+
 group :test do
   gem 'coveralls', require: false
   gem 'rspec'

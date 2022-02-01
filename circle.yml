@@ -2,7 +2,7 @@ version: 2.1
 orbs:
   ruby: circleci/ruby@1.1
 jobs:
-  test:
+  check_and_test:
     parameters:
       ruby-version:
         type: string
@@ -13,13 +13,16 @@ jobs:
       - checkout
       - ruby/install-deps
       - run:
+          name: Run static code analysis
+          command: bundle exec rubocop
+      - run:
           name: Run tests
           command: bundle exec rspec
 workflows:
   version: 2
   test:
     jobs:
-      - test:
+      - check_and_test:
           # cribbed from http://mikebian.co/running-tests-against-multiple-ruby-versions-using-circleci/
           matrix:
             parameters:
