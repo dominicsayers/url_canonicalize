@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 describe String do
   let(:host) { 'www.twitter.com' }
   let(:protocol) { 'http' }

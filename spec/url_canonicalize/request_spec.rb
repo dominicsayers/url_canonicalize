@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 describe URLCanonicalize::Request do
   context 'response types' do
     it 'follows temporary redirections' do
@@ -131,7 +133,7 @@ describe URLCanonicalize::Request do
       { url: 'http://5min.to/',             outcome: :exception_failure,      message: 'getaddrinfo: Name or service not known',            klass: SocketError },
       { url: 'http://60daymba.com',         outcome: :exception_failure,      message: 'getaddrinfo: No address associated with hostname',  klass: SocketError },
       # { url: 'http://_',                    outcome: :exception_uri,          message: 'URI::InvalidURIError: the scheme http does not accept registry part: _ (or bad hostname?)' },
-      { url: 'http://www.twitter.com',      outcome: :success },
+      { url: 'http://www.twitter.com',      outcome: :success }
       # { url: 'http://~',                    outcome: :exception_uri, message: 'URI::InvalidURIError: the scheme http does not accept registry part: ~ (or bad hostname?)' }
     ].shuffle.each do |test|
       it 'handles real-world data' do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 describe URLCanonicalize::Response::Redirect do
   let(:host) { 'www.twitter.com' }
   let(:protocol) { 'http' }
