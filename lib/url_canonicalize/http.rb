@@ -153,14 +153,18 @@ module URLCanonicalize
       h.open_timeout = options[:open_timeout]
       h.read_timeout = options[:read_timeout]
 
-      if uri.scheme == 'https'
-        h.use_ssl = true # Can generate exception
-        h.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      else
-        h.use_ssl = false
-      end
+      ssl!(h)
 
       h
+    end
+
+    def ssl!(http)
+      if uri.scheme == 'https'
+        http.use_ssl = true # Can generate exception
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      else
+        http.use_ssl = false
+      end
     end
 
     def options
