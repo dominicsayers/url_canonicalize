@@ -23,6 +23,10 @@ Lint/LiteralInInterpolation:
   Description: 'Avoid interpolating literals in strings'
   AutoCorrect: true
 
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*
+
 Metrics/ClassLength:
   CountComments: false  # count full line comments?
   Max: 200
