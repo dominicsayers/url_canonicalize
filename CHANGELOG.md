@@ -1,7 +1,8 @@
-# Change Log
+# Changelog
 
-## [v0.2](https://github.com/dominicsayers/url_canonicalize/tree/v0.2) (2018-06-30)
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.15...v0.2)
+## [Unreleased](https://github.com/dominicsayers/url_canonicalize/tree/HEAD)
+
+[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.15...HEAD)
 
 **Implemented enhancements:**
 
@@ -12,21 +13,27 @@
 - Version 0.2 [\#6](https://github.com/dominicsayers/url_canonicalize/pull/6) ([dominicsayers](https://github.com/dominicsayers))
 
 ## [v0.1.15](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.15) (2017-03-14)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.14...v0.1.15)
 
 ## [v0.1.14](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.14) (2017-03-13)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.13...v0.1.14)
 
 ## [v0.1.13](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.13) (2017-03-13)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.12...v0.1.13)
 
 ## [v0.1.12](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.12) (2017-03-13)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.11...v0.1.12)
 
 ## [v0.1.11](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.11) (2017-03-13)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.10...v0.1.11)
 
 ## [v0.1.10](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.10) (2017-03-13)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.9...v0.1.10)
 
 **Closed issues:**
@@ -34,9 +41,11 @@
 - URLCanonicalize doesn't accept host names [\#4](https://github.com/dominicsayers/url_canonicalize/issues/4)
 
 ## [v0.1.9](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.9) (2017-03-06)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.8...v0.1.9)
 
 ## [v0.1.8](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.8) (2017-03-06)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.7...v0.1.8)
 
 **Closed issues:**
@@ -44,6 +53,7 @@
 - Use a later version of Ruby on CircleCI [\#3](https://github.com/dominicsayers/url_canonicalize/issues/3)
 
 ## [v0.1.7](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.7) (2017-03-06)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.6...v0.1.7)
 
 **Closed issues:**
@@ -51,42 +61,57 @@
 - Insecure version of Nokogiri [\#2](https://github.com/dominicsayers/url_canonicalize/issues/2)
 
 ## [v0.1.6](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.6) (2017-03-06)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.5...v0.1.6)
 
 ## [v0.1.5](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.5) (2016-10-26)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.4...v0.1.5)
 
 ## [v0.1.4](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.4) (2016-10-26)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.2...v0.1.4)
 
 ## [v0.1.2](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.2) (2016-10-26)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.1...v0.1.2)
 
 ## [v0.1.1](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.1) (2016-10-26)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.0...v0.1.1)
 
 ## [v0.1.0](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.0) (2016-10-20)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.0.7...v0.1.0)
 
 ## [v0.0.7](https://github.com/dominicsayers/url_canonicalize/tree/v0.0.7) (2016-10-20)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.0.6...v0.0.7)
 
 ## [v0.0.6](https://github.com/dominicsayers/url_canonicalize/tree/v0.0.6) (2016-10-20)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.0.5...v0.0.6)
 
 ## [v0.0.5](https://github.com/dominicsayers/url_canonicalize/tree/v0.0.5) (2016-10-20)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.0.4...v0.0.5)
 
 ## [v0.0.4](https://github.com/dominicsayers/url_canonicalize/tree/v0.0.4) (2016-10-20)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.0.3...v0.0.4)
 
 ## [v0.0.3](https://github.com/dominicsayers/url_canonicalize/tree/v0.0.3) (2016-10-20)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.0.2...v0.0.3)
 
 ## [v0.0.2](https://github.com/dominicsayers/url_canonicalize/tree/v0.0.2) (2016-10-20)
+
 [Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.0.1...v0.0.2)
 
 ## [v0.0.1](https://github.com/dominicsayers/url_canonicalize/tree/v0.0.1) (2016-10-20)
 
+[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/fec855bec42813304f93c8ef87035f184b054344...v0.0.1)
 
-\* *This Change Log was automatically generated by [github_changelog_generator](https://github.com/skywinder/Github-Changelog-Generator)*
+
+
+\* *This Changelog was automatically generated by [github_changelog_generator](https://github.com/github-changelog-generator/github-changelog-generator)*
