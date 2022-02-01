@@ -154,10 +154,14 @@ describe URLCanonicalize::Request do
 
     def expect_exception(klass, test)
       expect { URLCanonicalize.fetch(test[:url]) }.to raise_error do |e|
-        expect(e).to be_a(klass)
-        expect(e.message).to include(test[:message])
-        expect(e.message).to include(test[:klass].name) if test.key?(:klass)
+        specific_expectations(e, klass, test)
       end
+    end
+
+    def specific_expectations(exception, klass, test)
+      expect(exception).to be_a(klass)
+      expect(exception.message).to include(test[:message])
+      expect(exception.message).to include(test[:klass].name) if test.key?(:klass)
     end
 
     def http_code_from(klass)
