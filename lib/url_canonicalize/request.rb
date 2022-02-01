@@ -38,7 +38,7 @@ module URLCanonicalize
     end
 
     # We can stub this method in testing then call #response any number of times
-    def do_http_request #:nodoc: internal use only
+    def do_http_request # :nodoc: internal use only
       http.do_request request # Some URLs can throw an exception here
     end
 
@@ -170,6 +170,7 @@ module URLCanonicalize
 
     def relative_to_absolute(partial_url)
       return unless partial_url
+
       partial_uri = ::URI.parse(partial_url)
 
       if partial_uri.host
@@ -183,9 +184,11 @@ module URLCanonicalize
 
     def log_response
       return unless ENV['DEBUG']
+
       puts "#{http_method.upcase} #{url} #{response.code} #{response.message}"
 
       return unless ENV['DEBUG'].casecmp('headers')
+
       response.each { |k, v| puts "  #{k}:\t#{v}" }
     end
 

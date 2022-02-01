@@ -18,16 +18,18 @@ module URLCanonicalize
       def valid?(uri)
         raise URLCanonicalize::Exception::URI, "#{uri} must be http or https" unless VALID_CLASSES.include?(uri.class)
         raise URLCanonicalize::Exception::URI, "Missing host name in #{uri}" unless uri.host
+
         true
       end
 
       def decorate(url)
         return url if url.include? COLON
+
         "http://#{url}" # Add protocol if we just receive a host name
       end
 
       VALID_CLASSES = [::URI::HTTP, ::URI::HTTPS].freeze
-      COLON = ':'.freeze
+      COLON = ':'
     end
   end
 end

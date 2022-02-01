@@ -72,6 +72,7 @@ module URLCanonicalize
     def redirect_loop_detected?
       if redirect_list.include?(response_url)
         return true if last_known_good
+
         raise URLCanonicalize::Exception::Redirect, 'Redirect loop detected'
       end
 
@@ -84,6 +85,7 @@ module URLCanonicalize
     def max_redirects_reached?
       return false unless @redirects > options[:max_redirects]
       return true if last_known_good
+
       raise URLCanonicalize::Exception::Redirect, "#{@redirects} redirects is too many"
     end
 
@@ -102,6 +104,7 @@ module URLCanonicalize
     def handle_canonical_found
       self.last_known_good = response.response
       return true if response_url == url || redirect_list.include?(response_url)
+
       set_url_from_response
       false
     end
@@ -112,6 +115,7 @@ module URLCanonicalize
 
     def handle_failure
       return true if last_known_good
+
       raise URLCanonicalize::Exception::Failure, "#{response.failure_class}: #{response.message}"
     end
 
