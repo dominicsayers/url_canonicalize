@@ -17,8 +17,6 @@ group :test do
   gem 'webmock'
 end
 
-local_gemfile = 'Gemfile.local'
-
-if File.exist?(local_gemfile)
-  eval(File.read(local_gemfile)) # rubocop:disable Security/Eval
+group :build do
+  gem 'gem-release', require: false
 end
