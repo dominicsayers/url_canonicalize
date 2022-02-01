@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 describe URLCanonicalize::Exception do
   it 'raises the expected exception' do
     expect do

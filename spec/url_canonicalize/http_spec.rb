@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 describe URLCanonicalize::HTTP do
   context 'handling responses' do
     let(:host) { 'www.twitter.com' }
