@@ -24,7 +24,7 @@ GEM
     gem-release (2.2.2)
     hashdiff (1.0.1)
     json (2.6.1)
-    nokogiri (1.13.1-x86_64-linux)
+    nokogiri (1.13.3-x86_64-linux)
       racc (~> 1.4)
     parallel (1.21.0)
     parser (3.1.0.0)
