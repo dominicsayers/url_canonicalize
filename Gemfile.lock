@@ -23,7 +23,7 @@ GEM
     docile (1.4.0)
     gem-release (2.2.2)
     hashdiff (1.0.1)
-    json (2.6.1)
+    json (2.7.1)
     language_server-protocol (3.17.0.3)
     nokogiri (1.13.10-x86_64-linux)
       racc (~> 1.4)
