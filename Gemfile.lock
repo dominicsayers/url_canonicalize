@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    url_canonicalize (0.2.1)
+    url_canonicalize (1.0.0)
       addressable (~> 2)
       nokogiri (>= 1.13)
 
