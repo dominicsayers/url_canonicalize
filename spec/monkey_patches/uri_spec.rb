@@ -9,8 +9,8 @@ describe URI do
 
   it 'responds to the canonicalize method' do
     expect(URI.parse(url)).to respond_to(:canonicalize)
-    expect(URI::HTTP.build(host: host)).to respond_to(:canonicalize)
-    expect(URI::HTTPS.build(host: host)).to respond_to(:canonicalize)
+    expect(URI::HTTP.build(host:)).to respond_to(:canonicalize)
+    expect(URI::HTTPS.build(host:)).to respond_to(:canonicalize)
   end
 
   it 'is the expected class' do
