@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.homepage      = 'https://github.com/dominicsayers/url_canonicalize'
   s.license       = 'MIT'
 
-  s.required_ruby_version = '>= 2.6.0'
+  s.required_ruby_version = '>= 3.1.0'
 
   s.files = `git ls-files`.split($RS).grep_v(%r{^spec/})
 
