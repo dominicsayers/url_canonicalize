@@ -18,6 +18,7 @@ module URLCanonicalize
       def valid?(uri)
         raise URLCanonicalize::Exception::URI, "#{uri} must be http or https" unless VALID_CLASSES.include?(uri.class)
         raise URLCanonicalize::Exception::URI, "Missing host name in #{uri}" unless uri.host
+        raise URLCanonicalize::Exception::URI, "Empty host name in #{uri}" if uri.host.empty?
 
         true
       end
