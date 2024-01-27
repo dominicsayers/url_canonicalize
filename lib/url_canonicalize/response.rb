@@ -28,7 +28,7 @@ module URLCanonicalize
       def initialize(url, response, html)
         @response = response
         @html = html
-        super url
+        super(url)
       end
     end
 
@@ -40,7 +40,7 @@ module URLCanonicalize
 
       def initialize(url, response)
         @response = response
-        super url
+        super(url)
       end
     end
 

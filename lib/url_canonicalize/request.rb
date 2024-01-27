@@ -147,8 +147,8 @@ module URLCanonicalize
     def headers
       @headers ||= {
         'Accept-Language' => 'en-US,en;q=0.8',
-        'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; WOW64) '\
-                        'AppleWebKit/537.36 (KHTML, like Gecko) '\
+        'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; WOW64) ' \
+                        'AppleWebKit/537.36 (KHTML, like Gecko) ' \
                         'Chrome/51.0.2704.103 Safari/537.36'
       }
     end
