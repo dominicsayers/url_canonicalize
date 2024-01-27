@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
   s.authors       = ['Dominic Sayers']
   s.email         = ['dominic@sayers.cc']
   s.summary       = 'Finds the canonical version of a URL'
-  s.description   = 'Rubygem that finds the canonical version of a URL by '\
-                    'providing #canonicalize methods for the String, URI::HTTP'\
+  s.description   = 'Rubygem that finds the canonical version of a URL by ' \
+                    'providing #canonicalize methods for the String, URI::HTTP' \
                     ', URI::HTTPS and Addressable::URI classes'
   s.homepage      = 'https://github.com/dominicsayers/url_canonicalize'
   s.license       = 'MIT'
@@ -20,7 +20,6 @@ Gem::Specification.new do |s|
 
   s.files = `git ls-files`.split($RS).grep_v(%r{^spec/})
 
-  s.test_files = []
   s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.require_paths = ['lib']
 
