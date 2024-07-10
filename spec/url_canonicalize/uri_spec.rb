@@ -6,7 +6,7 @@ describe URLCanonicalize::URI do
   let(:url) { "#{protocol}://#{host}" }
 
   it 'accepts a valid URL' do
-    uri = URLCanonicalize::URI.parse(url)
+    uri = described_class.parse(url)
     expect(uri).to be_a(URI::HTTP)
     expect(uri.scheme).to eq protocol
     expect(uri.host).to eq host
@@ -14,7 +14,7 @@ describe URLCanonicalize::URI do
 
   it 'raises an exception for an unexpected protocol' do
     expect do
-      URLCanonicalize::URI.parse('mailto:developers@xenapto.com')
+      described_class.parse('mailto:developers@xenapto.com')
     end.to raise_error(
       URLCanonicalize::Exception::URI, 'mailto:developers@xenapto.com must be http or https'
     )
@@ -22,7 +22,7 @@ describe URLCanonicalize::URI do
 
   it 'raises an exception for an malformed URL' do
     expect do
-      URLCanonicalize::URI.parse('http://#')
+      described_class.parse('http://#')
     end.to raise_error(
       URLCanonicalize::Exception::URI, 'Empty host name in http://#'
     )
@@ -30,7 +30,7 @@ describe URLCanonicalize::URI do
 
   it 'raises an exception for a URL without a host' do
     expect do
-      URLCanonicalize::URI.parse('http:///')
+      described_class.parse('http:///')
     end.to raise_error(
       URLCanonicalize::Exception::URI, 'Empty host name in http:///'
     )
@@ -38,7 +38,7 @@ describe URLCanonicalize::URI do
 
   it 'raises an exception for a URL that ::URI raises an exception for' do
     expect do
-      URLCanonicalize::URI.parse("http://\xFF")
+      described_class.parse("http://\xFF")
     end.to raise_error(
       URLCanonicalize::Exception::URI, 'URI::InvalidURIError: URI must be ascii only "http://\xFF"'
     )

@@ -7,28 +7,28 @@ describe URLCanonicalize::Response::Redirect do
 
   describe URLCanonicalize::Response::Redirect do
     it 'has the expected properties' do
-      response = URLCanonicalize::Response::Redirect.new(url)
+      response = described_class.new(url)
       expect(response.url).to eq(url)
     end
   end
 
   describe URLCanonicalize::Response::Success do
     it 'has the expected properties' do
-      response = URLCanonicalize::Response::Success.new(url, 'response', 'html')
+      response = described_class.new(url, 'response', 'html')
       expect(response.url).to eq(url)
       expect(response.response).to eq('response')
       expect(response.html).to eq('html')
     end
 
     it 'can respond with xml' do
-      response = URLCanonicalize::Response::Success.new(url, Struct.new(:body).new('foo'), 'html')
+      response = described_class.new(url, Struct.new(:body).new('foo'), 'html')
       expect(response.xml).to be_a(Nokogiri::XML::Document)
     end
   end
 
   describe URLCanonicalize::Response::CanonicalFound do
     it 'has the expected properties' do
-      response = URLCanonicalize::Response::CanonicalFound.new(url, 'response')
+      response = described_class.new(url, 'response')
       expect(response.url).to eq(url)
       expect(response.response).to eq('response')
     end
@@ -36,7 +36,7 @@ describe URLCanonicalize::Response::Redirect do
 
   describe URLCanonicalize::Response::Failure do
     it 'has the expected properties' do
-      response = URLCanonicalize::Response::Failure.new('failure_class', 'message')
+      response = described_class.new('failure_class', 'message')
       expect(response.failure_class).to eq('failure_class')
       expect(response.message).to eq('message')
     end

@@ -8,10 +8,10 @@ describe Addressable::URI do
   before { allow(URLCanonicalize).to receive(:canonicalize).at_least(:once).and_return(url) }
 
   it 'responds to the canonicalize method' do
-    expect(Addressable::URI).to respond_to(:canonicalize)
+    expect(described_class).to respond_to(:canonicalize)
   end
 
   it 'is the expected class' do
-    expect(Addressable::URI.canonicalize(url)).to be_a(Addressable::URI)
+    expect(described_class.canonicalize(url)).to be_a(described_class)
   end
 end

@@ -5,7 +5,7 @@ describe URLCanonicalize::HTTP do
     let(:host) { 'www.twitter.com' }
     let(:protocol) { 'http' }
     let(:url) { "#{protocol}://#{host}" }
-    let(:http) { URLCanonicalize::HTTP.new(url) }
+    let(:http) { described_class.new(url) }
     let(:fetch_double) { double }
     let(:response) { URLCanonicalize::Response::Success.new(url, '', '') }
 
@@ -38,7 +38,7 @@ describe URLCanonicalize::HTTP do
 
     it 'handles a canonical URL different to the called URL' do
       responses = [URLCanonicalize::Response::CanonicalFound.new('http://new.url', response), response]
-      expect(fetch_double).to receive(:fetch).exactly(2).times.and_return(*responses)
+      expect(fetch_double).to receive(:fetch).twice.and_return(*responses)
       expect(http.fetch).to be_a(URLCanonicalize::Response::Success)
     end
   end
@@ -46,15 +46,15 @@ describe URLCanonicalize::HTTP do
   context 'handling protocols' do
     it 'uses SSL' do
       url = 'https://twitter.com'
-      http = URLCanonicalize::HTTP.new(url).send(:http)
-      expect(http.use_ssl?).to be_truthy
+      http = described_class.new(url).send(:http)
+      expect(http).to be_use_ssl
       expect(http.verify_mode).to eq(OpenSSL::SSL::VERIFY_NONE)
     end
 
     it 'uses HTTP' do
       url = 'http://twitter.com'
-      http = URLCanonicalize::HTTP.new(url).send(:http)
-      expect(http.use_ssl?).to be_falsey
+      http = described_class.new(url).send(:http)
+      expect(http).not_to be_use_ssl
       expect(http.verify_mode).to be_nil
     end
   end
