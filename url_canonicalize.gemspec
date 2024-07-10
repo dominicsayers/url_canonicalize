@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.require_paths = ['lib']
 
-  s.add_runtime_dependency 'addressable', '~> 2' # To normalize URLs
-  s.add_runtime_dependency 'nokogiri', '>= 1.13' # To look for <link rel="canonical" ...> in HTML
+  s.add_dependency 'addressable', '~> 2' # To normalize URLs
+  s.add_dependency 'nokogiri', '>= 1.13' # To look for <link rel="canonical" ...> in HTML
   s.metadata['rubygems_mfa_required'] = 'true'
 end
