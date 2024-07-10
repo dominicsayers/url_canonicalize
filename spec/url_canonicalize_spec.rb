@@ -14,11 +14,11 @@ describe URLCanonicalize do
   end
 
   it 'returns successfully for a complete URL' do
-    expect(URLCanonicalize.fetch(url)).to be_a(URLCanonicalize::Response::Success)
+    expect(described_class.fetch(url)).to be_a(URLCanonicalize::Response::Success)
   end
 
   it 'returns successfully for a host name' do
-    expect(URLCanonicalize.fetch(host)).to be_a(URLCanonicalize::Response::Success)
+    expect(described_class.fetch(host)).to be_a(URLCanonicalize::Response::Success)
   end
 
   it 'canonicalizes a URL' do

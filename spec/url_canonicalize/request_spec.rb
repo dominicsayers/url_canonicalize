@@ -9,7 +9,7 @@ describe URLCanonicalize::Request do
       ]
 
       responses.each { |response| expect(response).to receive(:body).and_return('') }
-      expect_any_instance_of(URLCanonicalize::Request).to receive(:do_http_request).and_return(*responses)
+      expect_any_instance_of(described_class).to receive(:do_http_request).and_return(*responses)
       URLCanonicalize.fetch('http://twitter.com')
     end
 
@@ -21,7 +21,7 @@ describe URLCanonicalize::Request do
 
       ENV['DEBUG'] = 'true'
       responses.each { |response| expect(response).to receive(:body).and_return('') }
-      expect_any_instance_of(URLCanonicalize::Request).to receive(:do_http_request).and_return(*responses)
+      expect_any_instance_of(described_class).to receive(:do_http_request).and_return(*responses)
       URLCanonicalize.fetch('https://twitter.com')
     end
 
@@ -91,7 +91,7 @@ describe URLCanonicalize::Request do
   context 'HTTP method' do
     it 'handles invalid HTTP methods' do
       http = URLCanonicalize::HTTP.new('http://twitter.com')
-      request = URLCanonicalize::Request.new(http)
+      request = described_class.new(http)
       request.send(:http_method=, 'nonsense')
       expect { request.send(:base_request) }.to raise_error(URLCanonicalize::Exception::Request, 'Unknown method: nonsense')
     end

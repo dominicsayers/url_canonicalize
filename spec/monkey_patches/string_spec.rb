@@ -12,6 +12,6 @@ describe String do
   end
 
   it 'is the expected class' do
-    expect(url.canonicalize).to be_a(String)
+    expect(url.canonicalize).to be_a(described_class)
   end
 end

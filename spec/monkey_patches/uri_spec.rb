@@ -8,12 +8,12 @@ describe URI do
   before { allow(URLCanonicalize).to receive(:canonicalize).at_least(:once).and_return(url) }
 
   it 'responds to the canonicalize method' do
-    expect(URI.parse(url)).to respond_to(:canonicalize)
+    expect(described_class.parse(url)).to respond_to(:canonicalize)
     expect(URI::HTTP.build(host:)).to respond_to(:canonicalize)
     expect(URI::HTTPS.build(host:)).to respond_to(:canonicalize)
   end
 
   it 'is the expected class' do
-    expect(URI.parse(url).canonicalize).to be_a(URI::HTTP)
+    expect(described_class.parse(url).canonicalize).to be_a(URI::HTTP)
   end
 end
