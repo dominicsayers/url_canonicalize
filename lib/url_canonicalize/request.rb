@@ -176,7 +176,7 @@ module URLCanonicalize
       if partial_uri.host
         partial_url # It's already absolute
       else
-        ::URI.join((uri || url), partial_url).to_s
+        ::URI.join(uri || url, partial_url).to_s
       end
     rescue ::URI::InvalidURIError
       nil
