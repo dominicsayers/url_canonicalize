@@ -3,6 +3,23 @@
 module URLCanonicalize
   # Make an HTTP request
   class Request
+    NETWORK_EXCEPTIONS = [
+      EOFError,
+      Errno::ECONNREFUSED,
+      Errno::ECONNRESET,
+      Errno::EHOSTUNREACH,
+      Errno::EINVAL,
+      Errno::ENETUNREACH,
+      Errno::ETIMEDOUT,
+      Net::OpenTimeout,
+      Net::ReadTimeout,
+      OpenSSL::SSL::SSLError,
+      SocketError,
+      Timeout::Error,
+      Zlib::BufError,
+      Zlib::DataError
+    ].freeze
+
     def fetch
       handle_response
     end
@@ -191,22 +208,5 @@ module URLCanonicalize
 
       response.each { |k, v| puts "  #{k}:\t#{v}" }
     end
-
-    NETWORK_EXCEPTIONS = [
-      EOFError,
-      Errno::ECONNREFUSED,
-      Errno::ECONNRESET,
-      Errno::EHOSTUNREACH,
-      Errno::EINVAL,
-      Errno::ENETUNREACH,
-      Errno::ETIMEDOUT,
-      Net::OpenTimeout,
-      Net::ReadTimeout,
-      OpenSSL::SSL::SSLError,
-      SocketError,
-      Timeout::Error,
-      Zlib::BufError,
-      Zlib::DataError
-    ].freeze
   end
 end
