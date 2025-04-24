@@ -25,7 +25,7 @@ GEM
     docile (1.4.1)
     gem-release (2.2.4)
     hashdiff (1.1.2)
-    json (2.11.0)
+    json (2.11.2)
     language_server-protocol (3.17.0.4)
     lint_roller (1.1.0)
     mize (0.4.1)
