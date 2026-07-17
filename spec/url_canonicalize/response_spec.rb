@@ -39,6 +39,13 @@ describe URLCanonicalize::Response::Redirect do
       response = described_class.new('failure_class', 'message')
       expect(response.failure_class).to eq('failure_class')
       expect(response.message).to eq('message')
+      expect(response.error).to be_nil
+    end
+
+    it 'carries the original error when there is one' do
+      error = SocketError.new('getaddrinfo: Name or service not known')
+      response = described_class.new(SocketError, 'message', error)
+      expect(response.error).to be(error)
     end
   end
 end

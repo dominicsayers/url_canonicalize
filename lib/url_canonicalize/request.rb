@@ -20,6 +20,13 @@ module URLCanonicalize
       Zlib::DataError
     ].freeze
 
+    # Unsuccessful responses to a HEAD request that trigger a retry with GET
+    HEAD_FALLBACK_RESPONSES = [
+      Net::HTTPForbidden,
+      Net::HTTPMethodNotAllowed,
+      Net::HTTPNotImplemented
+    ].freeze
+
     def fetch
       handle_response
     end
@@ -28,15 +35,13 @@ module URLCanonicalize
       @location ||= relative_to_absolute(response['location'])
     end
 
+    # Point this request at a new URI, discarding all state from the previous
+    # response so nothing leaks between hops
     def with_uri(uri)
       @uri = uri
 
       @url = nil
-      @host = nil
-      @request = nil
-      @response = nil
-      @location = nil
-      @html = nil
+      self.http_method = @default_http_method
 
       self
     end
@@ -48,6 +53,7 @@ module URLCanonicalize
     def initialize(http, http_method = :head)
       @http = http
       @http_method = http_method
+      @default_http_method = http_method
     end
 
     def response
@@ -72,36 +78,46 @@ module URLCanonicalize
       when Net::HTTPRedirection
         handle_redirection
       else
-        handle_failure
+        handle_unsuccessful
       end
     rescue *NETWORK_EXCEPTIONS => e
-      handle_failure(e.class, e.message)
+      handle_failure(e.class, e.message, e)
     end
 
     def handle_success
-      @canonical_url = $LAST_MATCH_INFO['url'] if (response['link'] || '') =~ /<(?<url>.+)>\s*;\s*rel="canonical"/i
+      @canonical_url = relative_to_absolute(URLCanonicalize::LinkHeader.canonical(response))
 
       return enhanced_response if canonical_url || http_method == :get
 
+      fallback_to_get
+    end
+
+    # Some servers reject HEAD requests outright, so any HEAD request rejected
+    # with one of these statuses is retried as a GET before giving up
+    def handle_unsuccessful
+      return fallback_to_get if http_method == :head && HEAD_FALLBACK_RESPONSES.any? { |klass| response.is_a?(klass) }
+
+      handle_failure
+    end
+
+    def fallback_to_get
       self.http_method = :get
       fetch
     end
 
+    # Follow any redirection that carries a usable Location header, whether the
+    # redirect is temporary or permanent. A redirection without one cannot be
+    # followed, so it is reported as a failure.
     def handle_redirection
-      case response
-      when Net::HTTPFound, Net::HTTPMovedTemporarily, Net::HTTPTemporaryRedirect # Temporary redirection
-        handle_success
-      else # Permanent redirection
-        if location
-          URLCanonicalize::Response::Redirect.new(location)
-        else
-          URLCanonicalize::Response::Failure.new(::URI::InvalidURIError, response['location'])
-        end
+      if location
+        URLCanonicalize::Response::Redirect.new(location)
+      else
+        URLCanonicalize::Response::Failure.new(::URI::InvalidURIError, response['location'])
       end
     end
 
-    def handle_failure(klass = response.class, message = response.message)
-      URLCanonicalize::Response::Failure.new(klass, message)
+    def handle_failure(klass = response.class, message = response.message, error = nil)
+      URLCanonicalize::Response::Failure.new(klass, message, error)
     end
 
     def enhanced_response
@@ -119,15 +135,22 @@ module URLCanonicalize
     end
 
     def canonical_url
-      @canonical_url ||= relative_to_absolute(canonical_url_raw)
+      @canonical_url ||= relative_to_absolute(canonical_url_element&.[]('href'), document_base_url)
     end
 
-    def canonical_url_raw
-      @canonical_url ||= canonical_url_element['href'] if canonical_url_element.is_a?(Nokogiri::XML::Element)
-    end
-
+    # The first HTML link element whose rel tokens include "canonical", however
+    # the tokens are cased, provided it has a usable href
     def canonical_url_element
-      @canonical_url_element ||= html&.xpath('//head/link[@rel="canonical"]')&.first
+      @canonical_url_element ||= html&.css('head link[rel]')&.find do |element|
+        element['rel'].split.any? { |token| token.casecmp?('canonical') } && !element['href'].to_s.strip.empty?
+      end
+    end
+
+    # HTML canonical links resolve against the document base URL, not the
+    # request URL, when the document declares one
+    def document_base_url
+      base_href = html&.at_css('head base[href]')&.[]('href')
+      relative_to_absolute(base_href) || url
     end
 
     def uri
@@ -138,10 +161,6 @@ module URLCanonicalize
       @url ||= uri.to_s
     end
 
-    def host
-      @host ||= uri.host
-    end
-
     def request_for_method
       r = base_request
       headers.each { |header_key, header_value| r[header_key] = header_value }
@@ -149,8 +168,6 @@ module URLCanonicalize
     end
 
     def base_request
-      check_http_method
-
       case http_method
       when :head
         Net::HTTP::Head.new uri
@@ -176,26 +193,19 @@ module URLCanonicalize
       @response = nil
       @location = nil
       @html = nil
+      @canonical_url = nil
+      @canonical_url_element = nil
     end
 
-    # Some sites treat HEAD requests as suspicious activity and block the
-    # requester after a few attempts. For these sites we'll use GET requests
-    # only
-    def check_http_method
-      @http_method = :get if /(linkedin|crunchbase).com/ =~ host
-    end
+    # Resolve absolute, protocol-relative, root-relative, path-relative and
+    # query-only references against the base URL per RFC 3986. Only http(s)
+    # results are usable
+    def relative_to_absolute(reference, base = url)
+      return unless reference
 
-    def relative_to_absolute(partial_url)
-      return unless partial_url
-
-      partial_uri = ::URI.parse(partial_url)
-
-      if partial_uri.host
-        partial_url # It's already absolute
-      else
-        ::URI.join(uri || url, partial_url).to_s
-      end
-    rescue ::URI::InvalidURIError
+      absolute = ::URI.join(base, reference.strip)
+      absolute.to_s if absolute.is_a?(::URI::HTTP)
+    rescue ::URI::InvalidURIError, ArgumentError, Encoding::CompatibilityError
       nil
     end
 

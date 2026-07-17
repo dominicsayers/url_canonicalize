@@ -43,4 +43,10 @@ describe URLCanonicalize::URI do
       URLCanonicalize::Exception::URI, 'URI::InvalidURIError: URI must be ascii only "http://\xFF"'
     )
   end
+
+  it 'preserves the original parsing error as the cause' do
+    expect { described_class.parse("http://\xFF") }.to raise_error(URLCanonicalize::Exception::URI) do |exception|
+      expect(exception.cause).to be_a(URI::InvalidURIError)
+    end
+  end
 end

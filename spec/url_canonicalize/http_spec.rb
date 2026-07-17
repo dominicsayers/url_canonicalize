@@ -31,14 +31,49 @@ describe URLCanonicalize::HTTP do
     end
 
     it 'detects a redirect loop' do
-      responses = [url, "#{url}xxx", url].map { |u| URLCanonicalize::Response::Redirect.new(u) }
+      responses = ["#{url}/a", "#{url}/b", "#{url}/a"].map { |u| URLCanonicalize::Response::Redirect.new(u) }
       expect(fetch_double).to receive(:fetch).exactly(3).times.and_return(*responses)
+      expect { http.fetch }.to raise_error(URLCanonicalize::Exception::Redirect, 'Redirect loop detected')
+    end
+
+    it 'detects a redirect straight back to the original URL' do
+      expect(fetch_double).to receive(:fetch).once.and_return(URLCanonicalize::Response::Redirect.new(url))
       expect { http.fetch }.to raise_error(URLCanonicalize::Exception::Redirect, 'Redirect loop detected')
     end
 
     it 'handles a canonical URL different to the called URL' do
       responses = [URLCanonicalize::Response::CanonicalFound.new('http://new.url', response), response]
       expect(fetch_double).to receive(:fetch).twice.and_return(*responses)
+      expect(http.fetch).to be_a(URLCanonicalize::Response::Success)
+    end
+
+    it 'terminates a canonical link cycle deterministically' do
+      other_url = "#{url}/other"
+      responses = [
+        URLCanonicalize::Response::CanonicalFound.new(other_url, response),
+        URLCanonicalize::Response::CanonicalFound.new(url, response)
+      ]
+      expect(fetch_double).to receive(:fetch).twice.and_return(*responses)
+      expect(http.fetch).to be_a(URLCanonicalize::Response::Success)
+    end
+
+    it 'counts followed canonical links against the hop budget' do
+      http = described_class.new(url, max_redirects: 2)
+      responses = (1..3).map do |i|
+        URLCanonicalize::Response::CanonicalFound.new("#{url}/#{i}", response)
+      end
+      expect(fetch_double).to receive(:fetch).exactly(3).times.and_return(*responses)
+      expect(http.fetch).to be_a(URLCanonicalize::Response::Success)
+    end
+
+    it 'shares one hop budget between redirects and canonical links' do
+      http = described_class.new(url, max_redirects: 2)
+      responses = [
+        URLCanonicalize::Response::Redirect.new("#{url}/1"),
+        URLCanonicalize::Response::CanonicalFound.new("#{url}/2", response),
+        URLCanonicalize::Response::Redirect.new("#{url}/3")
+      ]
+      expect(fetch_double).to receive(:fetch).exactly(3).times.and_return(*responses)
       expect(http.fetch).to be_a(URLCanonicalize::Response::Success)
     end
   end

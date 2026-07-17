@@ -14,6 +14,7 @@ module URLCanonicalize
   autoload :Destination, 'url_canonicalize/destination'
   autoload :Exception, 'url_canonicalize/exception'
   autoload :HTTP, 'url_canonicalize/http'
+  autoload :LinkHeader, 'url_canonicalize/link_header'
   autoload :MediaType, 'url_canonicalize/media_type'
   autoload :Options, 'url_canonicalize/options'
   autoload :Request, 'url_canonicalize/request'
@@ -35,4 +36,3 @@ end
 require 'monkey_patches/uri'
 require 'monkey_patches/string'
 require 'monkey_patches/addressable/uri'
-require 'English' # Needed for $LAST_MATCH_INFO
