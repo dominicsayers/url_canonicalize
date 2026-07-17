@@ -30,6 +30,83 @@ URI('http://www.twitter.com').canonicalize # => #<URI::HTTP:0x00000008767908 URL
 Addressable::URI.canonicalize('http://www.twitter.com') # => #<Addressable::URI:0x43c9 URI:https://twitter.com/>
 ```
 
+Options can be passed to the module API or any of the `canonicalize` extension
+methods:
+
+```ruby
+URLCanonicalize.fetch(
+  'https://example.com/article',
+  total_timeout: 10,
+  max_body_bytes: 512_000
+)
+
+'https://example.com/article'.canonicalize(total_timeout: 10)
+```
+
+## Security and limits
+
+URLCanonicalize treats every fetched URL as untrusted, including redirect and
+`rel="canonical"` destinations. Before connecting, it resolves the host,
+rejects the destination if any DNS answer is loopback, private, link-local,
+multicast, unspecified, reserved or otherwise not publicly routable, and pins
+the connection to the validated address. URLs containing user information are
+rejected. HTTPS always uses peer certificate and hostname verification; there
+is no option to disable TLS verification.
+
+IPv6 validation is fail-closed: only prefixes currently allocated in IANA's
+global-unicast registry are eligible, with special-purpose ranges excluded.
+
+Environment HTTP proxies are deliberately disabled because proxy-side DNS
+resolution would bypass destination validation. Ports `80` and `443` are the
+only ports allowed by default.
+
+The default resource limits are:
+
+- 30 seconds for the complete canonicalization operation, across every hop;
+- 8 seconds to open a connection, 15 seconds to read and 8 seconds to write;
+- 1 MiB for a buffered response body;
+- 10 followed redirects.
+
+Only successful GET responses with `text/html`, `application/xhtml+xml`,
+`application/xml` or `text/xml` media types are buffered. Media-type casing and
+parameters such as `charset` are accepted. Other response bodies are drained
+without being retained, and only HTML/XHTML responses are parsed for canonical
+link elements.
+
+All limits can be made stricter, and additional ports can be explicitly
+allowed:
+
+```ruby
+URLCanonicalize.fetch(
+  'https://example.com:8443/article',
+  allowed_ports: [443, 8443],
+  max_body_bytes: 256_000,
+  total_timeout: 5,
+  open_timeout: 2,
+  read_timeout: 3,
+  write_timeout: 2,
+  max_redirects: 5
+)
+```
+
+Private-network fetching is available only as an explicit escape hatch for
+trusted URLs:
+
+```ruby
+URLCanonicalize.fetch(
+  'http://intranet.example.test',
+  allow_private_networks: true
+)
+```
+
+Enabling `allow_private_networks` relaxes the SSRF protection. It still pins the
+resolved address and enforces the user-information and port policies.
+
+Policy violations raise `URLCanonicalize::Exception::Security`, oversized
+responses raise `URLCanonicalize::Exception::ResponseTooLarge`, and the overall
+deadline raises `URLCanonicalize::Exception::Timeout`. Other socket and TLS
+failures continue to surface as `URLCanonicalize::Exception::Failure`.
+
 ## More Information
 
 URLCanonical follows HTTP redirects and also looks for `rel="canonical"` hints

@@ -3,26 +3,36 @@
 describe URLCanonicalize::Request do
   context 'response types' do
     it 'follows temporary redirections' do
+      url = 'http://twitter.com'
+      http = URLCanonicalize::HTTP.new(url)
+      request = described_class.new(http)
       responses = [
         Net::HTTPFound.new('1.1', '302', ''),
         Net::HTTPOK.new('1.1', '200', '')
       ]
 
-      responses.each { |response| expect(response).to receive(:body).and_return('') }
-      expect_any_instance_of(described_class).to receive(:do_http_request).and_return(*responses)
-      URLCanonicalize.fetch('http://twitter.com')
+      allow(request).to receive(:do_http_request).and_return(*responses)
+
+      expect(request.with_uri(URLCanonicalize::URI.parse(url)).fetch)
+        .to be_a(URLCanonicalize::Response::Success)
     end
 
     it 'logs the response if required' do
+      url = 'https://twitter.com'
+      http = URLCanonicalize::HTTP.new(url)
+      request = described_class.new(http)
       responses = [
         Net::HTTPOK.new('1.1', '200', ''),
         Net::HTTPOK.new('1.1', '200', '')
       ]
 
       ENV['DEBUG'] = 'true'
-      responses.each { |response| expect(response).to receive(:body).and_return('') }
-      expect_any_instance_of(described_class).to receive(:do_http_request).and_return(*responses)
-      URLCanonicalize.fetch('https://twitter.com')
+      allow(request).to receive(:do_http_request).and_return(*responses)
+
+      expect { request.with_uri(URLCanonicalize::URI.parse(url)).fetch }
+        .to output(%r{GET https://twitter.com 200}).to_stdout
+    ensure
+      ENV.delete('DEBUG')
     end
 
     it 'follows permanent redirections' do
@@ -34,7 +44,6 @@ describe URLCanonicalize::Request do
       response['location'] = canonical_url
       canonical_response = Net::HTTPOK.new('1.1', '200', '')
 
-      expect(canonical_response).to receive(:body).twice.and_return('')
       expect(URLCanonicalize::HTTP).to receive(:new).and_return(http)
       expect(http).to receive(:do_request).and_return(response, canonical_response, canonical_response)
 
@@ -51,7 +60,6 @@ describe URLCanonicalize::Request do
       response['location'] = relative_path
       canonical_response = Net::HTTPOK.new('1.1', '200', '')
 
-      expect(canonical_response).to receive(:body).twice.and_return('')
       expect(URLCanonicalize::HTTP).to receive(:new).and_return(http)
       expect(http).to receive(:do_request).and_return(response, canonical_response, canonical_response)
 
@@ -79,12 +87,27 @@ describe URLCanonicalize::Request do
 
       http = URLCanonicalize::HTTP.new(url)
       response = Net::HTTPOK.new('1.1', '200', '')
+      response['Content-Type'] = 'text/html; charset=utf-8'
 
       expect(URLCanonicalize::HTTP).to receive(:new).and_return(http)
       expect(response).to receive(:body).and_return(html, '')
       expect(http).to receive(:do_request).twice.and_return(response)
 
       expect(URLCanonicalize.canonicalize(url)).to eq(canonical_url)
+    end
+
+    it 'does not parse non-HTML successful responses as HTML' do
+      url = 'https://example.com/data'
+      http = URLCanonicalize::HTTP.new(url)
+      response = Net::HTTPOK.new('1.1', '200', '')
+      response['Content-Type'] = 'application/xml'
+
+      allow(response).to receive(:body).and_return('<root />')
+      allow(http).to receive(:do_request).and_return(response)
+
+      result = described_class.new(http).with_uri(URLCanonicalize::URI.parse(url)).fetch
+
+      expect(result.html).to be_nil
     end
   end
 
@@ -98,6 +121,11 @@ describe URLCanonicalize::Request do
   end
 
   context 'real world examples' do
+    before do
+      allow(Addrinfo).to receive(:getaddrinfo)
+        .and_return([Addrinfo.tcp('93.184.216.34', 80)])
+    end
+
     # Recent versions of URI do not barf when asked to parse http://$$$, http://_ or http://~ so I've commented those out
     # examples
     [

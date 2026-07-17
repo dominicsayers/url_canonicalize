@@ -4,7 +4,11 @@ module URLCanonicalize
   # Persistent connection for possible repeated requests to the same host
   class HTTP
     def fetch
-      loop { break last_known_good if handle_response }
+      ::Timeout.timeout(
+        options[:total_timeout],
+        URLCanonicalize::Exception::Timeout,
+        "Canonicalization exceeded #{options[:total_timeout]} seconds"
+      ) { fetch_within_deadline }
     end
 
     def uri
@@ -17,15 +21,21 @@ module URLCanonicalize
     end
 
     def do_request(http_request)
-      http.request http_request
+      http.request(http_request) { |response| read_response_body(http_request, response) }
     end
 
     private
 
     attr_accessor :last_known_good
+    attr_reader :options
 
-    def initialize(raw_url)
+    def fetch_within_deadline
+      loop { break last_known_good if handle_response }
+    end
+
+    def initialize(raw_url, **options)
       @raw_url = raw_url
+      @options = URLCanonicalize::Options.new(**options)
     end
 
     # Fetch the response
@@ -133,46 +143,65 @@ module URLCanonicalize
     end
 
     def http
-      return @http if same_host_and_port # reuse connection
+      URLCanonicalize::Destination.validate!(uri, options)
+      return @http if same_origin? # reuse connection
 
       @previous = uri
       @http = new_http
     end
 
-    def same_host_and_port
-      uri.host == previous.host && uri.port == previous.port
+    def same_origin?
+      uri.scheme == previous.scheme && uri.host == previous.host && uri.port == previous.port
     end
 
     def previous
-      @previous ||= Struct.new(:host, :port).new
+      @previous ||= Struct.new(:scheme, :host, :port).new
     end
 
     def new_http
-      h = Net::HTTP.new uri.host, uri.port
+      h = Net::HTTP.new uri.host, uri.port, nil
 
-      h.open_timeout = options[:open_timeout]
-      h.read_timeout = options[:read_timeout]
-
+      h.ipaddr = URLCanonicalize::Destination.resolve(uri, options)
+      configure_timeouts(h)
       ssl!(h)
 
       h
     end
 
-    def ssl!(http)
-      if uri.scheme == 'https'
-        http.use_ssl = true # Can generate exception
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    def read_response_body(http_request, response)
+      if buffer_response_body?(http_request, response)
+        enforce_content_length!(response)
+        response.read_body(URLCanonicalize::BoundedBody.new(options[:max_body_bytes]))
       else
-        http.use_ssl = false
+        response.read_body { |_chunk| nil }
       end
     end
 
-    def options
-      @options ||= {
-        open_timeout: 8, # Twitter responds in >5s
-        read_timeout: 15,
-        max_redirects: 10
-      }
+    def buffer_response_body?(http_request, response)
+      http_request.method == 'GET' && response.is_a?(Net::HTTPSuccess) && URLCanonicalize::MediaType.buffered?(response)
+    end
+
+    def enforce_content_length!(response)
+      return unless response.content_length && response.content_length > options[:max_body_bytes]
+
+      raise URLCanonicalize::Exception::ResponseTooLarge,
+            "Response body exceeds #{options[:max_body_bytes]} bytes"
+    end
+
+    def configure_timeouts(http)
+      http.open_timeout = options[:open_timeout]
+      http.read_timeout = options[:read_timeout]
+      http.write_timeout = options[:write_timeout]
+    end
+
+    def ssl!(http)
+      if uri.scheme == 'https'
+        http.use_ssl = true # Can generate exception
+        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+        http.verify_hostname = true
+      else
+        http.use_ssl = false
+      end
     end
   end
 end

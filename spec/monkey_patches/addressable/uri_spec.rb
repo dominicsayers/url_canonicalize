@@ -14,4 +14,11 @@ describe Addressable::URI do
   it 'is the expected class' do
     expect(described_class.canonicalize(url)).to be_a(described_class)
   end
+
+  it 'forwards security options' do
+    allow(URLCanonicalize).to receive(:canonicalize).and_call_original
+
+    expect { described_class.canonicalize(url, unknown: true) }
+      .to raise_error(ArgumentError, 'Unknown options: unknown')
+  end
 end

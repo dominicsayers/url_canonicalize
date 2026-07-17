@@ -115,7 +115,7 @@ module URLCanonicalize
     end
 
     def html
-      @html ||= Nokogiri::HTML response.body
+      @html ||= Nokogiri::HTML(response.body) if URLCanonicalize::MediaType.html?(response)
     end
 
     def canonical_url
@@ -127,7 +127,7 @@ module URLCanonicalize
     end
 
     def canonical_url_element
-      @canonical_url_element ||= html.xpath('//head/link[@rel="canonical"]').first
+      @canonical_url_element ||= html&.xpath('//head/link[@rel="canonical"]')&.first
     end
 
     def uri

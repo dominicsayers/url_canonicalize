@@ -14,4 +14,11 @@ describe String do
   it 'is the expected class' do
     expect(url.canonicalize).to be_a(described_class)
   end
+
+  it 'forwards security options' do
+    allow(URLCanonicalize).to receive(:canonicalize).and_call_original
+
+    expect { url.canonicalize(unknown: true) }
+      .to raise_error(ArgumentError, 'Unknown options: unknown')
+  end
 end
