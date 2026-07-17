@@ -66,22 +66,48 @@ describe URLCanonicalize::Request do
         .to be_a(URLCanonicalize::Response::Failure)
     end
 
-    it 'logs the response if required' do
-      url = 'https://twitter.com'
-      http = URLCanonicalize::HTTP.new(url)
-      request = described_class.new(http)
-      responses = [
-        Net::HTTPOK.new('1.1', '200', ''),
-        Net::HTTPOK.new('1.1', '200', '')
-      ]
+    context 'with debug logging' do
+      let(:url) { 'https://twitter.com' }
+      let(:http) { URLCanonicalize::HTTP.new(url) }
+      let(:request) { described_class.new(http) }
+      let(:response) do
+        r = Net::HTTPOK.new('1.1', '200', '')
+        r['Content-Type'] = 'text/html'
+        allow(r).to receive(:body).and_return('')
+        r
+      end
 
-      ENV['DEBUG'] = 'true'
-      allow(request).to receive(:do_http_request).and_return(*responses)
+      before { allow(request).to receive(:do_http_request).and_return(response) }
 
-      expect { request.with_uri(URLCanonicalize::URI.parse(url)).fetch }
-        .to output(%r{GET https://twitter.com 200}).to_stdout
-    ensure
-      ENV.delete('DEBUG')
+      def fetch
+        request.with_uri(URLCanonicalize::URI.parse(url)).fetch
+      end
+
+      it 'logs the response if required' do
+        with_env('DEBUG', 'true') do
+          expect { fetch }.to output(%r{GET https://twitter.com 200}).to_stdout
+        end
+      end
+
+      it 'logs response headers when DEBUG is headers' do
+        with_env('DEBUG', 'headers') do
+          expect { fetch }.to output(%r{content-type:\ttext/html}i).to_stdout
+        end
+      end
+
+      it 'does not log response headers for other DEBUG values' do
+        with_env('DEBUG', 'true') do
+          expect { fetch }.not_to output(/content-type/i).to_stdout
+        end
+      end
+
+      it 'logs a found canonical URL if required' do
+        response['Link'] = '<https://twitter.com/canonical>; rel="canonical"'
+
+        with_env('DEBUG', 'true') do
+          expect { fetch }.to output(%r{canonical_url:\thttps://twitter.com/canonical}).to_stdout
+        end
+      end
     end
 
     it 'follows permanent redirections' do
@@ -368,7 +394,7 @@ describe URLCanonicalize::Request do
       # { url: 'http://_',                    outcome: :exception_uri,          message: 'URI::InvalidURIError: the scheme http does not accept registry part: _ (or bad hostname?)' },
       { url: 'http://www.twitter.com',      outcome: :success }
       # { url: 'http://~',                    outcome: :exception_uri, message: 'URI::InvalidURIError: the scheme http does not accept registry part: ~ (or bad hostname?)' }
-    ].shuffle.each do |test|
+    ].each do |test|
       it 'handles real-world data' do
         url, outcome, message, klass = *test.values
 
