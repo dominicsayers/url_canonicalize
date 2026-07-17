@@ -6,6 +6,9 @@
 
 **Implemented enhancements:**
 
+- Security: verify TLS, block unsafe destinations at every hop, pin DNS results,
+  restrict ports, bound response bodies and enforce an overall deadline
+  [\#184](https://github.com/dominicsayers/url_canonicalize/issues/184)
 - Feature: return a Nokogiri XML document if requested [\#5](https://github.com/dominicsayers/url_canonicalize/issues/5)
 
 **Merged pull requests:**

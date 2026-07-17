@@ -7,6 +7,9 @@ module URLCanonicalize
     Failure = Class.new(self)
     Redirect = Class.new(self)
     Request = Class.new(self)
+    ResponseTooLarge = Class.new(self)
+    Security = Class.new(self)
+    Timeout = Class.new(self)
     URI = Class.new(self)
   end
 end
