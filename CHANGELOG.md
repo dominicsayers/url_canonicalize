@@ -6,6 +6,13 @@
 
 **Implemented enhancements:**
 
+- Correct the redirect and canonical-link HTTP state machine: follow all
+  redirect responses consistently, bound redirect and canonical-link chains
+  with one visited-URL set and one hop budget, parse `Link` headers properly,
+  resolve relative references per RFC 3986, match HTML canonical links
+  case-insensitively against the document base URL, replace host-specific HEAD
+  behavior with a generic HEAD-to-GET fallback and preserve underlying error
+  causes [\#185](https://github.com/dominicsayers/url_canonicalize/issues/185)
 - Security: verify TLS, block unsafe destinations at every hop, pin DNS results,
   restrict ports, bound response bodies and enforce an overall deadline
   [\#184](https://github.com/dominicsayers/url_canonicalize/issues/184)

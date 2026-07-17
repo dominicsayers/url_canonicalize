@@ -65,7 +65,7 @@ The default resource limits are:
 - 30 seconds for the complete canonicalization operation, across every hop;
 - 8 seconds to open a connection, 15 seconds to read and 8 seconds to write;
 - 1 MiB for a buffered response body;
-- 10 followed redirects.
+- 10 followed hops, shared between redirects and followed canonical links.
 
 Only successful GET responses with `text/html`, `application/xhtml+xml`,
 `application/xml` or `text/xml` media types are buffered. Media-type casing and
@@ -106,6 +106,35 @@ Policy violations raise `URLCanonicalize::Exception::Security`, oversized
 responses raise `URLCanonicalize::Exception::ResponseTooLarge`, and the overall
 deadline raises `URLCanonicalize::Exception::Timeout`. Other socket and TLS
 failures continue to surface as `URLCanonicalize::Exception::Failure`.
+
+## How URLs are followed
+
+Every hop starts with a `HEAD` request. If the response carries no canonical
+hint in its headers, the request is retried as a `GET` so the HTML can be
+inspected. A `HEAD` request rejected with `403 Forbidden`,
+`405 Method Not Allowed` or `501 Not Implemented` is also retried once as a
+`GET`, because some servers refuse `HEAD` requests outright; an unsuccessful
+`GET` is not retried.
+
+All redirect responses (`301`, `302`, `303`, `307` and `308`) are followed
+through their `Location` header. A redirection without a usable `Location` is
+treated as a failure.
+
+Canonical URLs are discovered from `Link` response headers whose `rel` tokens
+include `canonical` (RFC 8288), and from `<link rel="canonical">` elements in
+the HTML `<head>`, matched case-insensitively. Header targets resolve against
+the request URL; HTML targets resolve against the document base URL, honouring
+any `<base href>` element. Absolute, protocol-relative, root-relative,
+path-relative and query-only references are all resolved per RFC 3986, and
+only `http` or `https` results are followed.
+
+Redirects and followed canonical links share a single visited-URL set and a
+single hop budget (`max_redirects`), so cycles and over-long chains always
+terminate. A cycle or exhausted budget returns the last successfully fetched
+response if there is one, and raises `URLCanonicalize::Exception::Redirect`
+otherwise. When a failure is caused by an underlying exception, that exception
+is preserved as the `cause` of the raised
+`URLCanonicalize::Exception::Failure`.
 
 ## More Information
 

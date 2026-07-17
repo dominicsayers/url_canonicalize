@@ -30,7 +30,10 @@ module URLCanonicalize
     attr_reader :options
 
     def fetch_within_deadline
-      loop { break last_known_good if handle_response }
+      loop do
+        result = handle_response
+        break result if result
+      end
     end
 
     def initialize(raw_url, **options)
@@ -55,7 +58,8 @@ module URLCanonicalize
       request.with_uri(uri).fetch
     end
 
-    # Parse the response, and clear the response ready to follow the next redirect
+    # Parse the response, and clear the response ready to follow the next redirect.
+    # Returns the final response when canonicalization is complete, or nil to continue
     def handle_response
       result = parse_response
       @response = nil
@@ -69,7 +73,7 @@ module URLCanonicalize
       when URLCanonicalize::Response::Success
         handle_success
       when URLCanonicalize::Response::Redirect
-        redirect_loop_detected? || max_redirects_reached?
+        handle_redirect
       when URLCanonicalize::Response::CanonicalFound
         handle_canonical_found
       when URLCanonicalize::Response::Failure
@@ -79,54 +83,49 @@ module URLCanonicalize
       end
     end
 
-    def redirect_loop_detected?
-      if redirect_list.include?(response_url)
-        return true if last_known_good
+    def handle_redirect
+      reason = hop_refusal_reason
+      return follow_hop unless reason
 
-        raise URLCanonicalize::Exception::Redirect, 'Redirect loop detected'
-      end
-
-      redirect_list << response_url
-      increment_redirects
-      set_url_from_response
-      false
-    end
-
-    def max_redirects_reached?
-      return false unless @redirects > options[:max_redirects]
-      return true if last_known_good
-
-      raise URLCanonicalize::Exception::Redirect, "#{@redirects} redirects is too many"
-    end
-
-    def redirect_list
-      @redirect_list ||= []
-    end
-
-    def increment_redirects
-      @redirects = redirects + 1
-    end
-
-    def redirects
-      @redirects ||= 0
+      last_known_good || raise(URLCanonicalize::Exception::Redirect, reason)
     end
 
     def handle_canonical_found
       self.last_known_good = response.response
-      return true if response_url == url || redirect_list.include?(response_url)
+      return last_known_good if hop_refusal_reason
 
-      set_url_from_response
-      false
+      follow_hop
     end
 
-    def set_url_from_response
+    # Redirects and followed canonical links share one visited-URL set and one
+    # hop budget, so any cycle or over-long chain terminates deterministically
+    def hop_refusal_reason
+      return 'Redirect loop detected' if visited.include?(response_url)
+      return "#{hops + 1} redirects is too many" if hops >= options[:max_redirects]
+
+      nil
+    end
+
+    def follow_hop
+      visited << response_url
+      @hops = hops + 1
       self.url = response_url
+      nil
+    end
+
+    def visited
+      @visited ||= [url]
+    end
+
+    def hops
+      @hops ||= 0
     end
 
     def handle_failure
-      return true if last_known_good
+      return last_known_good if last_known_good
 
-      raise URLCanonicalize::Exception::Failure, "#{response.failure_class}: #{response.message}"
+      raise URLCanonicalize::Exception::Failure, "#{response.failure_class}: #{response.message}",
+            cause: response.error
     end
 
     def handle_unhandled_response
@@ -135,7 +134,6 @@ module URLCanonicalize
 
     def handle_success
       self.last_known_good = response
-      true
     end
 
     def url

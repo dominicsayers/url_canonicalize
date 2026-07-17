@@ -2,19 +2,68 @@
 
 describe URLCanonicalize::Request do
   context 'response types' do
-    it 'follows temporary redirections' do
+    {
+      '301' => Net::HTTPMovedPermanently,
+      '302' => Net::HTTPFound,
+      '303' => Net::HTTPSeeOther,
+      '307' => Net::HTTPTemporaryRedirect,
+      '308' => Net::HTTPPermanentRedirect
+    }.each do |code, response_class|
+      it "follows a #{code} redirection" do
+        url = 'http://twitter.com'
+        location = 'https://twitter.com/'
+        http = URLCanonicalize::HTTP.new(url)
+        request = described_class.new(http)
+        response = response_class.new('1.1', code, '')
+        response['location'] = location
+
+        allow(request).to receive(:do_http_request).and_return(response)
+
+        result = request.with_uri(URLCanonicalize::URI.parse(url)).fetch
+
+        expect(result).to be_a(URLCanonicalize::Response::Redirect)
+        expect(result.url).to eq(location)
+      end
+    end
+
+    it 'resolves a protocol-relative redirect location' do
+      result = redirect_from('https://twitter.com', location: '//other.example/path')
+
+      expect(result).to be_a(URLCanonicalize::Response::Redirect)
+      expect(result.url).to eq('https://other.example/path')
+    end
+
+    it 'resolves a query-only redirect location' do
+      result = redirect_from('http://twitter.com/page', location: '?q=1')
+
+      expect(result).to be_a(URLCanonicalize::Response::Redirect)
+      expect(result.url).to eq('http://twitter.com/page?q=1')
+    end
+
+    it 'treats a redirect to a non-HTTP location as a failure' do
+      expect(redirect_from('http://twitter.com', location: 'ftp://example.com/file'))
+        .to be_a(URLCanonicalize::Response::Failure)
+    end
+
+    def redirect_from(url, location:)
+      http = URLCanonicalize::HTTP.new(url)
+      request = described_class.new(http)
+      response = Net::HTTPMovedPermanently.new('1.1', '301', '')
+      response['location'] = location
+      allow(request).to receive(:do_http_request).and_return(response)
+      request.with_uri(URLCanonicalize::URI.parse(url)).fetch
+    end
+
+    it 'treats a redirection without a Location header as a failure' do
       url = 'http://twitter.com'
       http = URLCanonicalize::HTTP.new(url)
       request = described_class.new(http)
-      responses = [
-        Net::HTTPFound.new('1.1', '302', ''),
-        Net::HTTPOK.new('1.1', '200', '')
-      ]
+      response = Net::HTTPFound.new('1.1', '302', '')
 
-      allow(request).to receive(:do_http_request).and_return(*responses)
+      allow(request).to receive(:do_http_request).and_return(response)
 
       expect(request.with_uri(URLCanonicalize::URI.parse(url)).fetch)
-        .to be_a(URLCanonicalize::Response::Success)
+        .to be_a(URLCanonicalize::Response::Failure)
     end
 
     it 'logs the response if required' do
@@ -90,10 +139,121 @@ describe URLCanonicalize::Request do
       response['Content-Type'] = 'text/html; charset=utf-8'
 
       expect(URLCanonicalize::HTTP).to receive(:new).and_return(http)
-      expect(response).to receive(:body).and_return(html, '')
-      expect(http).to receive(:do_request).twice.and_return(response)
+      expect(response).to receive(:body).and_return(html, '', '')
+      expect(http).to receive(:do_request).exactly(3).times.and_return(response)
 
       expect(URLCanonicalize.canonicalize(url)).to eq(canonical_url)
+    end
+
+    it 'finds the canonical link among multiple links in a Link header' do
+      url = 'http://twitter.com'
+      canonical_url = 'https://twitter.com/canonical'
+      http = URLCanonicalize::HTTP.new(url)
+      request = described_class.new(http)
+      response = Net::HTTPOK.new('1.1', '200', '')
+      response['Link'] = "<https://twitter.com/style.css>; rel=\"stylesheet\", <#{canonical_url}>; rel=\"canonical\""
+
+      allow(request).to receive(:do_http_request).and_return(response)
+
+      result = request.with_uri(URLCanonicalize::URI.parse(url)).fetch
+
+      expect(result).to be_a(URLCanonicalize::Response::CanonicalFound)
+      expect(result.url).to eq(canonical_url)
+    end
+
+    it 'resolves a relative canonical Link target against the request URL' do
+      url = 'http://twitter.com'
+      http = URLCanonicalize::HTTP.new(url)
+      request = described_class.new(http)
+      response = Net::HTTPOK.new('1.1', '200', '')
+      response['Link'] = '</canonical>; rel=canonical'
+
+      allow(request).to receive(:do_http_request).and_return(response)
+
+      result = request.with_uri(URLCanonicalize::URI.parse(url)).fetch
+
+      expect(result).to be_a(URLCanonicalize::Response::CanonicalFound)
+      expect(result.url).to eq('http://twitter.com/canonical')
+    end
+
+    it 'does not leak canonical state to the next URI' do
+      url = 'http://twitter.com'
+      canonical_url = 'https://twitter.com/'
+      html = "<html><head><link rel=\"canonical\" href=\"#{canonical_url}\" /></head></html>"
+
+      http = URLCanonicalize::HTTP.new(url)
+      request = described_class.new(http)
+
+      with_canonical = Net::HTTPOK.new('1.1', '200', '')
+      with_canonical['Content-Type'] = 'text/html'
+      allow(with_canonical).to receive(:body).and_return(html)
+
+      plain = Net::HTTPOK.new('1.1', '200', '')
+      plain['Content-Type'] = 'text/html'
+      allow(plain).to receive(:body).and_return('<html><head></head></html>')
+
+      allow(request).to receive(:do_http_request).and_return(with_canonical, plain, plain)
+
+      expect(request.with_uri(URLCanonicalize::URI.parse(url)).fetch)
+        .to be_a(URLCanonicalize::Response::CanonicalFound)
+      expect(request.with_uri(URLCanonicalize::URI.parse(canonical_url)).fetch)
+        .to be_a(URLCanonicalize::Response::Success)
+    end
+
+    it 'resets the HTTP method for each new URI' do
+      url = 'http://twitter.com'
+      http = URLCanonicalize::HTTP.new(url)
+      request = described_class.new(http)
+      plain = Net::HTTPOK.new('1.1', '200', '')
+      allow(plain).to receive(:body).and_return('')
+      allow(request).to receive(:do_http_request).and_return(plain)
+
+      request.with_uri(URLCanonicalize::URI.parse(url)).fetch
+      expect(request.send(:http_method)).to eq(:get)
+
+      request.with_uri(URLCanonicalize::URI.parse('https://twitter.com/'))
+      expect(request.send(:http_method)).to eq(:head)
+    end
+
+    it 'recognizes HTML canonical links case-insensitively' do
+      html = '<html><head><link rel="Canonical" href="https://twitter.com/x" /></head></html>'
+      result = html_success_request(html).fetch
+
+      expect(result).to be_a(URLCanonicalize::Response::CanonicalFound)
+      expect(result.url).to eq('https://twitter.com/x')
+    end
+
+    it 'recognizes canonical among multiple rel tokens' do
+      html = '<html><head><link rel="canonical nofollow" href="https://twitter.com/x" /></head></html>'
+      result = html_success_request(html).fetch
+
+      expect(result).to be_a(URLCanonicalize::Response::CanonicalFound)
+      expect(result.url).to eq('https://twitter.com/x')
+    end
+
+    it 'resolves an HTML canonical link against the document base URL' do
+      html = '<html><head><base href="https://base.example/dir/">' \
+             '<link rel="canonical" href="page"></head></html>'
+      result = html_success_request(html).fetch
+
+      expect(result).to be_a(URLCanonicalize::Response::CanonicalFound)
+      expect(result.url).to eq('https://base.example/dir/page')
+    end
+
+    it 'ignores a canonical link without a usable href' do
+      html = '<html><head><link rel="canonical" href=" " /></head></html>'
+
+      expect(html_success_request(html).fetch).to be_a(URLCanonicalize::Response::Success)
+    end
+
+    def html_success_request(html, url: 'http://twitter.com')
+      http = URLCanonicalize::HTTP.new(url)
+      request = described_class.new(http)
+      response = Net::HTTPOK.new('1.1', '200', '')
+      response['Content-Type'] = 'text/html'
+      allow(response).to receive(:body).and_return(html)
+      allow(request).to receive(:do_http_request).and_return(response)
+      request.with_uri(URLCanonicalize::URI.parse(url))
     end
 
     it 'does not parse non-HTML successful responses as HTML' do
@@ -111,6 +271,47 @@ describe URLCanonicalize::Request do
     end
   end
 
+  context 'HEAD fallback' do
+    {
+      '403' => Net::HTTPForbidden,
+      '405' => Net::HTTPMethodNotAllowed,
+      '501' => Net::HTTPNotImplemented
+    }.each do |code, response_class|
+      it "retries a HEAD request rejected with #{code} as a GET" do
+        url = 'http://twitter.com'
+        http = URLCanonicalize::HTTP.new(url)
+        request = described_class.new(http)
+        rejection = response_class.new('1.1', code, '')
+        ok = Net::HTTPOK.new('1.1', '200', '')
+
+        expect(request).to receive(:do_http_request).twice.and_return(rejection, ok)
+
+        expect(request.with_uri(URLCanonicalize::URI.parse(url)).fetch)
+          .to be_a(URLCanonicalize::Response::Success)
+      end
+    end
+
+    it 'does not retry an unsuccessful GET request' do
+      url = 'http://twitter.com'
+      http = URLCanonicalize::HTTP.new(url)
+      request = described_class.new(http)
+      rejection = Net::HTTPMethodNotAllowed.new('1.1', '405', '')
+
+      expect(request).to receive(:do_http_request).twice.and_return(rejection, rejection)
+
+      expect(request.with_uri(URLCanonicalize::URI.parse(url)).fetch)
+        .to be_a(URLCanonicalize::Response::Failure)
+    end
+
+    it 'uses HEAD first for every host' do
+      url = 'https://www.linkedin.com/company/example'
+      http = URLCanonicalize::HTTP.new(url)
+      request = described_class.new(http).with_uri(URLCanonicalize::URI.parse(url))
+
+      expect(request.send(:request).method).to eq('HEAD')
+    end
+  end
+
   context 'HTTP method' do
     it 'handles invalid HTTP methods' do
       http = URLCanonicalize::HTTP.new('http://twitter.com')
@@ -124,6 +325,15 @@ describe URLCanonicalize::Request do
     before do
       allow(Addrinfo).to receive(:getaddrinfo)
         .and_return([Addrinfo.tcp('93.184.216.34', 80)])
+    end
+
+    it 'preserves the original network error as the cause of the raised failure' do
+      url = 'http://twitter.com'
+      stub_request(:any, url).to_raise(SocketError.new('getaddrinfo: Name or service not known'))
+
+      expect { URLCanonicalize.fetch(url) }.to raise_error(URLCanonicalize::Exception::Failure) do |exception|
+        expect(exception.cause).to be_a(SocketError)
+      end
     end
 
     # Recent versions of URI do not barf when asked to parse http://$$$, http://_ or http://~ so I've commented those out

@@ -13,7 +13,8 @@ module URLCanonicalize
       end
     end
 
-    Redirect = Class.new(Generic)
+    # A redirect to another URL
+    class Redirect < Generic; end
 
     # Add HTML to a successful response
     class Success < Generic
@@ -44,15 +45,17 @@ module URLCanonicalize
       end
     end
 
-    # It barfed
+    # It barfed. When the failure came from a rescued exception, `error` holds
+    # the original exception so callers can see the real cause
     class Failure
-      attr_reader :failure_class, :message
+      attr_reader :failure_class, :message, :error
 
       private
 
-      def initialize(failure_class, message)
+      def initialize(failure_class, message, error = nil)
         @failure_class = failure_class
         @message = message
+        @error = error
       end
     end
   end

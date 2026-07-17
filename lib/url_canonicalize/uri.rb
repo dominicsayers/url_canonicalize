@@ -11,9 +11,7 @@ module URLCanonicalize
         uri = ::URI.parse decorate(url)
         uri if valid? uri
       rescue ::URI::InvalidURIError => e
-        new_exception = URLCanonicalize::Exception::URI.new("#{e.class}: #{e.message}")
-        new_exception.set_backtrace e.backtrace
-        raise new_exception
+        raise URLCanonicalize::Exception::URI, "#{e.class}: #{e.message}" # the original error becomes the cause
       end
 
       private
