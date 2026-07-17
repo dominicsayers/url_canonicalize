@@ -6,6 +6,11 @@
 
 **Implemented enhancements:**
 
+- Refresh the test and coverage strategy: replace `coveralls-ruby` with a
+  current SimpleCov release, enforce 100% line and branch coverage on CI,
+  test redirect and canonical-link behavior deterministically at the HTTP
+  boundary with WebMock, and isolate environment changes in every example
+  [\#189](https://github.com/dominicsayers/url_canonicalize/issues/189)
 - Correct the redirect and canonical-link HTTP state machine: follow all
   redirect responses consistently, bound redirect and canonical-link chains
   with one visited-URL set and one hop budget, parse `Link` headers properly,
