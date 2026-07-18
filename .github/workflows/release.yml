@@ -24,7 +24,7 @@ jobs:
 
       - uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:
-          ruby-version: '3.3'
+          ruby-version: '3.4.10'
           bundler-cache: true
 
       - name: Check the tag matches the gem version
