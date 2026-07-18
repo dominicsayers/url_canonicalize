@@ -6,11 +6,6 @@
 # Note that changes in the inspected code, or installation of new
 # versions of RuboCop, may require this file to be generated again.
 
-# Offense count: 2
-RSpec/AnyInstance:
-  Exclude:
-    - 'spec/url_canonicalize/request_spec.rb'
-
 # Offense count: 5
 # Configuration parameters: Prefixes, AllowedPatterns.
 # Prefixes: when, with, without
@@ -24,16 +19,10 @@ RSpec/ContextWording:
 RSpec/ExampleLength:
   Max: 16
 
-# Offense count: 5
+# Offense count: 2
 RSpec/ExpectInHook:
   Exclude:
     - 'spec/url_canonicalize/http_spec.rb'
-    - 'spec/url_canonicalize_spec.rb'
-
-# Offense count: 2
-RSpec/IteratedExpectation:
-  Exclude:
-    - 'spec/url_canonicalize/request_spec.rb'
 
 # Offense count: 23
 # Configuration parameters: .
@@ -58,9 +47,8 @@ RSpec/SpecFilePathFormat:
     - '**/spec/routing/**/*'
     - 'spec/url_canonicalize/response_spec.rb'
 
-# Offense count: 12
+# Offense count: 6
 RSpec/StubbedMock:
   Exclude:
     - 'spec/url_canonicalize/http_spec.rb'
     - 'spec/url_canonicalize/request_spec.rb'
-    - 'spec/url_canonicalize_spec.rb'
