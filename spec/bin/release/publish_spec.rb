@@ -569,16 +569,22 @@ RSpec.describe ReleaseTools::Publish do
     end
 
     it 'prints help successfully without errors' do
-      stdout, stderr, status = Open3.capture3(RbConfig.ruby, PublishSpecSupport::EXECUTABLE, '--help')
+      stdout, stderr, status = run_executable('--help')
 
       expect([status.success?, stdout, stderr]).to eq([true, described_class::HELP, ''])
     end
 
     it 'reports usage errors concisely with a non-zero exit status' do
-      stdout, stderr, status = Open3.capture3(RbConfig.ruby, PublishSpecSupport::EXECUTABLE)
+      stdout, stderr, status = run_executable
 
       expect([status.success?, stdout, stderr])
         .to match([false, '', %r{Error:.*Usage: bin/release/publish VERSION}m])
+    end
+
+    # An unbundled environment keeps Bundler's RUBYOPT out of the child
+    # process, whose stderr must contain only the executable's own output.
+    def run_executable(*arguments)
+      Bundler.with_unbundled_env { Open3.capture3(RbConfig.ruby, PublishSpecSupport::EXECUTABLE, *arguments) }
     end
   end
 end
