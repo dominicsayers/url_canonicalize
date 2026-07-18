@@ -122,7 +122,7 @@ module URLCanonicalize
 
     def enhanced_response
       if canonical_url
-        puts "  * canonical_url:\t#{canonical_url}" if ENV['DEBUG']
+        puts "  * canonical_url:\t#{canonical_url}" if ENV.fetch('DEBUG', nil)
         response_plus = URLCanonicalize::Response::Success.new(canonical_url, response, html)
         URLCanonicalize::Response::CanonicalFound.new(canonical_url, response_plus)
       else
@@ -210,11 +210,12 @@ module URLCanonicalize
     end
 
     def log_response
-      return unless ENV['DEBUG']
+      debug = ENV.fetch('DEBUG', nil)
+      return unless debug
 
       puts "#{http_method.upcase} #{url} #{response.code} #{response.message}"
 
-      return unless ENV['DEBUG'].casecmp?('headers')
+      return unless debug.casecmp?('headers')
 
       response.each { |k, v| puts "  #{k}:\t#{v}" }
     end

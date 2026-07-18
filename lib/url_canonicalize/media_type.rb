@@ -6,7 +6,7 @@ module URLCanonicalize
     HTML = %w[text/html application/xhtml+xml].freeze
     BUFFERED = (HTML + %w[application/xml text/xml]).freeze
 
-    module_function
+    extend self
 
     def buffered?(response)
       BUFFERED.include?(normalized(response))
