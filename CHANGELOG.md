@@ -1,132 +1,78 @@
 # Changelog
 
-## [Unreleased](https://github.com/dominicsayers/url_canonicalize/tree/HEAD)
+All notable changes to this project are documented in this file.
 
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.15...HEAD)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-**Implemented enhancements:**
+## [Unreleased]
 
-- Refresh the test and coverage strategy: replace `coveralls-ruby` with a
-  current SimpleCov release, enforce 100% line and branch coverage on CI,
-  test redirect and canonical-link behavior deterministically at the HTTP
-  boundary with WebMock, and isolate environment changes in every example
-  [\#189](https://github.com/dominicsayers/url_canonicalize/issues/189)
+### Security
+
+- Verify TLS certificates and hostnames, block unsafe destinations at every
+  hop, pin DNS results, restrict ports, bound response bodies and enforce an
+  overall deadline
+  ([#184](https://github.com/dominicsayers/url_canonicalize/issues/184))
+
+### Fixed
+
 - Correct the redirect and canonical-link HTTP state machine: follow all
   redirect responses consistently, bound redirect and canonical-link chains
   with one visited-URL set and one hop budget, parse `Link` headers properly,
   resolve relative references per RFC 3986, match HTML canonical links
   case-insensitively against the document base URL, replace host-specific HEAD
   behavior with a generic HEAD-to-GET fallback and preserve underlying error
-  causes [\#185](https://github.com/dominicsayers/url_canonicalize/issues/185)
-- Security: verify TLS, block unsafe destinations at every hop, pin DNS results,
-  restrict ports, bound response bodies and enforce an overall deadline
-  [\#184](https://github.com/dominicsayers/url_canonicalize/issues/184)
-- Feature: return a Nokogiri XML document if requested [\#5](https://github.com/dominicsayers/url_canonicalize/issues/5)
+  causes ([#185](https://github.com/dominicsayers/url_canonicalize/issues/185))
 
-**Merged pull requests:**
+### Changed
 
-- Version 0.2 [\#6](https://github.com/dominicsayers/url_canonicalize/pull/6) ([dominicsayers](https://github.com/dominicsayers))
+- Refresh the test and coverage strategy: replace `coveralls-ruby` with a
+  current SimpleCov release, enforce 100% line and branch coverage on CI,
+  test redirect and canonical-link behavior deterministically at the HTTP
+  boundary and isolate environment changes in every example
+  ([#189](https://github.com/dominicsayers/url_canonicalize/issues/189))
+- Refresh gem packaging and release automation: package a deterministic
+  whitelist of runtime files, verify the built gem in CI, add full RubyGems
+  metadata, publish through RubyGems Trusted Publishing from a tag-triggered
+  workflow, and document security reporting and release procedures
+  ([#190](https://github.com/dominicsayers/url_canonicalize/issues/190))
 
-## [v0.1.15](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.15) (2017-03-14)
+## [1.0.0] - 2024-01-27
 
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.14...v0.1.15)
+### Changed
 
-## [v0.1.14](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.14) (2017-03-13)
+- Require Ruby 3.1 or later
+- Adapt to the behavior of current `uri` gem releases
+- Update development dependencies and CI configuration
 
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.13...v0.1.14)
+## [0.2.1] - 2022-02-01
 
-## [v0.1.13](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.13) (2017-03-13)
+### Changed
 
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.12...v0.1.13)
+- Require a recent Nokogiri version
+- Update development dependencies, RuboCop configuration and CI configuration
 
-## [v0.1.12](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.12) (2017-03-13)
+## [0.2.0] - 2018-06-30
 
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.11...v0.1.12)
+### Added
 
-## [v0.1.11](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.11) (2017-03-13)
+- Return a Nokogiri XML document from a successful response when requested
+  ([#5](https://github.com/dominicsayers/url_canonicalize/issues/5))
 
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.10...v0.1.11)
+### Changed
 
-## [v0.1.10](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.10) (2017-03-13)
+- Require a secure Nokogiri version
 
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.9...v0.1.10)
+## 0.1.15 and earlier
 
-**Closed issues:**
+Releases from 0.0.1 (2016-10-20) to 0.1.15 (2017-03-14) predate this
+changelog format. Their history is available from the
+[v0.1.15 tag](https://github.com/dominicsayers/url_canonicalize/releases/tag/v0.1.15)
+and the
+[commit log](https://github.com/dominicsayers/url_canonicalize/commits/v0.1.15).
 
-- URLCanonicalize doesn't accept host names [\#4](https://github.com/dominicsayers/url_canonicalize/issues/4)
-
-## [v0.1.9](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.9) (2017-03-06)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.8...v0.1.9)
-
-## [v0.1.8](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.8) (2017-03-06)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.7...v0.1.8)
-
-**Closed issues:**
-
-- Use a later version of Ruby on CircleCI [\#3](https://github.com/dominicsayers/url_canonicalize/issues/3)
-
-## [v0.1.7](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.7) (2017-03-06)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.6...v0.1.7)
-
-**Closed issues:**
-
-- Insecure version of Nokogiri [\#2](https://github.com/dominicsayers/url_canonicalize/issues/2)
-
-## [v0.1.6](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.6) (2017-03-06)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.5...v0.1.6)
-
-## [v0.1.5](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.5) (2016-10-26)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.4...v0.1.5)
-
-## [v0.1.4](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.4) (2016-10-26)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.2...v0.1.4)
-
-## [v0.1.2](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.2) (2016-10-26)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.1...v0.1.2)
-
-## [v0.1.1](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.1) (2016-10-26)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.1.0...v0.1.1)
-
-## [v0.1.0](https://github.com/dominicsayers/url_canonicalize/tree/v0.1.0) (2016-10-20)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.0.7...v0.1.0)
-
-## [v0.0.7](https://github.com/dominicsayers/url_canonicalize/tree/v0.0.7) (2016-10-20)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.0.6...v0.0.7)
-
-## [v0.0.6](https://github.com/dominicsayers/url_canonicalize/tree/v0.0.6) (2016-10-20)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.0.5...v0.0.6)
-
-## [v0.0.5](https://github.com/dominicsayers/url_canonicalize/tree/v0.0.5) (2016-10-20)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.0.4...v0.0.5)
-
-## [v0.0.4](https://github.com/dominicsayers/url_canonicalize/tree/v0.0.4) (2016-10-20)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.0.3...v0.0.4)
-
-## [v0.0.3](https://github.com/dominicsayers/url_canonicalize/tree/v0.0.3) (2016-10-20)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.0.2...v0.0.3)
-
-## [v0.0.2](https://github.com/dominicsayers/url_canonicalize/tree/v0.0.2) (2016-10-20)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/v0.0.1...v0.0.2)
-
-## [v0.0.1](https://github.com/dominicsayers/url_canonicalize/tree/v0.0.1) (2016-10-20)
-
-[Full Changelog](https://github.com/dominicsayers/url_canonicalize/compare/fec855bec42813304f93c8ef87035f184b054344...v0.0.1)
-
-
-
-\* *This Changelog was automatically generated by [github_changelog_generator](https://github.com/github-changelog-generator/github-changelog-generator)*
+[Unreleased]: https://github.com/dominicsayers/url_canonicalize/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/dominicsayers/url_canonicalize/compare/v0.2.1...v1.0.0
+[0.2.1]: https://github.com/dominicsayers/url_canonicalize/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/dominicsayers/url_canonicalize/compare/v0.1.15...v0.2.0
