@@ -1,0 +1,318 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'date'
+require 'fileutils'
+require 'tempfile'
+require_relative 'support'
+
+module ReleaseTools
+  class Prepare
+    USAGE = 'Usage: bin/release/prepare VERSION'
+    HELP = <<~TEXT.freeze
+      #{USAGE}
+
+      Prepare VERSION on its release-vVERSION branch, update the release files,
+      and run the release checks. This command does not commit or push changes.
+    TEXT
+    ROOT = File.expand_path('../..', __dir__)
+    VERSION_FILE = 'lib/url_canonicalize/version.rb'
+    CHANGELOG_FILE = 'CHANGELOG.md'
+    VERSION_DECLARATION = /^[ \t]*VERSION[ \t]*=/
+    VERSION_ASSIGNMENT = /^(?<indent>[ \t]*)VERSION = '(?<current>[^'\r\n]+)'[ \t]*$/
+    VERIFICATION_COMMANDS = [
+      %w[mise exec -- bundle install],
+      %w[mise exec -- bundle exec rspec],
+      %w[mise exec -- bundle exec rubocop],
+      %w[mise exec -- bundle exec gem build url_canonicalize.gemspec]
+    ].freeze
+
+    class TransactionalWriter
+      Artifact = Struct.new(:target, :replacement, :backup, keyword_init: true)
+
+      def initialize(renamer: File.method(:rename))
+        @renamer = renamer
+      end
+
+      def write(changes)
+        artifacts = stage_changes(changes)
+        install(artifacts)
+        true
+      ensure
+        cleanup(artifacts || [])
+      end
+
+      private
+
+      attr_reader :renamer
+
+      def stage_changes(changes)
+        artifacts = {}
+        changes.each { |target, contents| artifacts[target] = stage_change(target, contents) }
+        artifacts.values
+      rescue SystemCallError, IOError => e
+        cleanup(artifacts.values)
+        raise Error, "Could not stage release files: #{e.message}"
+      end
+
+      def stage_change(target, contents)
+        mode = File.stat(target).mode & 0o7777
+        replacement = stage_file(target, contents, mode)
+        backup = stage_file(target, File.binread(target), mode)
+        Artifact.new(target: target, replacement: replacement, backup: backup)
+      rescue SystemCallError, IOError
+        cleanup_tempfiles([replacement, backup].compact)
+        raise
+      end
+
+      def stage_file(target, contents, mode)
+        tempfile = Tempfile.new([".#{File.basename(target)}.release-", '.tmp'], File.dirname(target))
+        tempfile.binmode
+        tempfile.write(contents)
+        tempfile.flush
+        tempfile.close
+        File.chmod(mode, tempfile.path)
+        tempfile
+      rescue SystemCallError, IOError
+        cleanup_tempfiles([tempfile].compact)
+        raise
+      end
+
+      def install(artifacts)
+        artifacts.each { |artifact| renamer.call(artifact.replacement.path, artifact.target) }
+      rescue SystemCallError, IOError => e
+        raise installation_error(e, rollback(artifacts))
+      end
+
+      def rollback(artifacts)
+        artifacts.filter_map do |artifact|
+          renamer.call(artifact.backup.path, artifact.target)
+          nil
+        rescue SystemCallError, IOError => e
+          "#{artifact.target}: #{e.message}"
+        end
+      end
+
+      def installation_error(cause, rollback_errors)
+        message = "Could not install release files: #{cause.message}"
+        if rollback_errors.empty?
+          Error.new("#{message}; original release files were restored")
+        else
+          details = rollback_errors.join(', ')
+          Error.new("#{message}; rollback failed for #{details}; release files may be inconsistent")
+        end
+      end
+
+      def cleanup(artifacts)
+        tempfiles = artifacts.flat_map { |artifact| [artifact.replacement, artifact.backup] }
+        cleanup_tempfiles(tempfiles)
+      end
+
+      def cleanup_tempfiles(tempfiles)
+        tempfiles.each do |tempfile|
+          tempfile.close unless tempfile.closed?
+          FileUtils.rm_f(tempfile.path)
+        rescue SystemCallError, IOError
+          nil
+        end
+      end
+    end
+
+    class << self
+      def run(arguments, runner: Runner.new, root: ROOT, today: Date.today, writer: TransactionalWriter.new)
+        if arguments == ['--help']
+          runner.puts(HELP)
+          return true
+        end
+
+        version = parse_version(arguments)
+        new(version: version, runner: runner, root: root, today: today, writer: writer).call
+      end
+
+      private
+
+      def parse_version(arguments)
+        raise Error, USAGE unless arguments.length == 1
+
+        Version.parse(arguments.first)
+      rescue Error => e
+        raise if e.message == USAGE
+
+        raise Error, "#{e.message}\n#{USAGE}"
+      end
+    end
+
+    def initialize(version:, runner:, root:, today:, writer:)
+      @version = version
+      @runner = runner
+      @root = root
+      @today = today
+      @writer = writer
+    end
+
+    def call
+      Dir.chdir(root) do
+        guard_repository!
+        version_contents, current_version = transformed_version_file
+        changelog_contents = transformed_changelog(current_version)
+        write_release_files(version_contents, changelog_contents)
+        run_verification_commands
+      end
+      print_next_steps
+      true
+    rescue SystemCallError => e
+      raise Error, e.message
+    end
+
+    private
+
+    attr_reader :root, :runner, :today, :version, :writer
+
+    def guard_repository!
+      branch = runner.capture('git', 'symbolic-ref', '--quiet', '--short', 'HEAD').strip
+      expected_branch = "release-v#{version}"
+      raise Error, "Current branch must be #{expected_branch}, not #{branch}" unless branch == expected_branch
+
+      status = runner.capture('git', 'status', '--porcelain=v1')
+      raise Error, 'Working tree must be clean before preparing a release' unless status.empty?
+    end
+
+    def transformed_version_file
+      contents = File.binread(VERSION_FILE)
+      assignment = version_assignment(contents)
+      current_version = parse_current_version(assignment[:current])
+      raise Error, "Version #{version} must be greater than #{current_version}" unless version > current_version
+
+      replacement = "#{assignment[:indent]}VERSION = '#{version}'"
+      [contents.sub(VERSION_ASSIGNMENT, replacement), current_version]
+    end
+
+    def version_assignment(contents)
+      declarations = contents.lines.grep(VERSION_DECLARATION)
+      assignment = VERSION_ASSIGNMENT.match(declarations.first.to_s)
+      message = "#{VERSION_FILE} must contain exactly one VERSION assignment"
+      raise Error, message unless declarations.one? && assignment
+
+      assignment
+    end
+
+    def parse_current_version(value)
+      Version.parse(value)
+    rescue Error
+      raise Error, "Current VERSION must use the X.Y.Z format, not #{value.inspect}"
+    end
+
+    def transformed_changelog(current_version)
+      Changelog.new(
+        contents: File.binread(CHANGELOG_FILE),
+        current_version: current_version,
+        version: version,
+        today: today
+      ).transform
+    end
+
+    def write_release_files(version_contents, changelog_contents)
+      writer.write(VERSION_FILE => version_contents, CHANGELOG_FILE => changelog_contents)
+    end
+
+    def run_verification_commands
+      VERIFICATION_COMMANDS.each { |command| runner.run(*command) }
+    end
+
+    def print_next_steps
+      runner.puts("Prepared version #{version} and completed the release checks.")
+      runner.puts('Inspect the changes, then commit and push the release branch.')
+      runner.puts('Open and merge the pull request before running bin/release/publish.')
+    end
+
+    class Changelog
+      UNRELEASED_HEADING = /^## \[Unreleased\][ \t]*$/
+      VERSION_HEADING = /^## \[[^\]]+\].*$/
+      REFERENCE_DEFINITION = /^\[[^\]]+\]:[ \t]+.*$/
+      ANY_UNRELEASED_LINK = /^\[Unreleased\]:.*$/
+      UNRELEASED_LINK = %r{^\[Unreleased\]:[ ](?<base>https://github\.com/dominicsayers/url_canonicalize/compare/)v
+                           (?<previous>\d+\.\d+\.\d+)\.\.\.HEAD[ \t]*$}x
+
+      def initialize(contents:, current_version:, version:, today:)
+        @contents = contents
+        @current_version = current_version
+        @version = version
+        @today = today
+      end
+
+      def transform
+        heading = unreleased_heading
+        ensure_unreleased_notes!(heading)
+        ensure_requested_version_absent!
+        link = unreleased_link
+        ensure_previous_version_matches!(link)
+
+        insert_release_heading(heading).sub(link[0], replacement_links(link[:base]))
+      end
+
+      private
+
+      attr_reader :contents, :current_version, :today, :version
+
+      def unreleased_heading
+        headings = contents.to_enum(:scan, UNRELEASED_HEADING).map { Regexp.last_match.dup }
+        raise Error, 'CHANGELOG.md must contain exactly one Unreleased heading' unless headings.one?
+
+        headings.first
+      end
+
+      def ensure_unreleased_notes!(heading)
+        following_text = contents[heading.end(0)..]
+        boundary = [VERSION_HEADING, REFERENCE_DEFINITION]
+                   .filter_map { |pattern| following_text.match(pattern) }
+                   .min_by { |match| match.begin(0) }
+        notes = boundary ? following_text[0...boundary.begin(0)] : following_text
+        raise Error, 'CHANGELOG.md Unreleased section has no notes' if notes.strip.empty?
+      end
+
+      def ensure_requested_version_absent!
+        heading_pattern = /^## \[#{Regexp.escape(version.to_s)}\].*$/
+        link_pattern = /^\[#{Regexp.escape(version.to_s)}\]:.*$/
+        raise Error, "CHANGELOG.md heading for #{version} already exists" if contents.match?(heading_pattern)
+        raise Error, "CHANGELOG.md comparison link for #{version} already exists" if contents.match?(link_pattern)
+      end
+
+      def unreleased_link
+        candidates = contents.to_enum(:scan, ANY_UNRELEASED_LINK).map { Regexp.last_match.dup }
+        valid = candidates.select { |candidate| UNRELEASED_LINK.match?(candidate[0]) }
+        unless candidates.one? && valid.one?
+          raise Error, 'CHANGELOG.md must contain exactly one Unreleased comparison link'
+        end
+
+        UNRELEASED_LINK.match(valid.first[0])
+      end
+
+      def ensure_previous_version_matches!(link)
+        return if link[:previous] == current_version.to_s
+
+        raise Error,
+              "CHANGELOG.md Unreleased link compares from v#{link[:previous]}, but VERSION is #{current_version}"
+      end
+
+      def insert_release_heading(heading)
+        release_heading = "#{heading[0]}\n\n## [#{version}] - #{today.strftime('%Y-%m-%d')}"
+        contents.sub(heading[0], release_heading)
+      end
+
+      def replacement_links(base)
+        unreleased = "[Unreleased]: #{base}v#{version}...HEAD"
+        release = "[#{version}]: #{base}v#{current_version}...v#{version}"
+        "#{unreleased}\n#{release}"
+      end
+    end
+  end
+end
+
+if $PROGRAM_NAME == __FILE__
+  begin
+    ReleaseTools::Prepare.run(ARGV)
+  rescue ReleaseTools::Error => e
+    warn "Error: #{e.message}"
+    exit 1
+  end
+end
