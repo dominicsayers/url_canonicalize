@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    uses: ./.github/workflows/verify-gem.yml
+
+  release:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # for RubyGems Trusted Publishing (OIDC); no API key is stored
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Check the tag matches the gem version
+        run: |
+          version="$(ruby -r./lib/url_canonicalize/version -e 'print URLCanonicalize::VERSION')"
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match gem version v${version}" >&2
+            exit 1
+          fi
+
+      - name: Build and publish to RubyGems
+        uses: rubygems/release-gem@v1

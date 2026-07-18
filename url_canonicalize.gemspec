@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-lib = File.expand_path('lib', __dir__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'url_canonicalize/version'
+require_relative 'lib/url_canonicalize/version'
 
 Gem::Specification.new do |s|
   s.name          = 'url_canonicalize'
@@ -18,12 +16,20 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '>= 3.1.0'
 
-  s.files = `git ls-files`.split($RS).grep_v(%r{^spec/})
-
-  s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  # A deterministic whitelist: runtime code plus user-facing documentation.
+  # Development configuration is deliberately not packaged.
+  s.files = Dir.glob('lib/**/*.rb', base: __dir__).sort + %w[CHANGELOG.md LICENSE README.md SECURITY.md]
   s.require_paths = ['lib']
+
+  s.metadata = {
+    'bug_tracker_uri' => "#{s.homepage}/issues",
+    'changelog_uri' => "#{s.homepage}/blob/main/CHANGELOG.md",
+    'documentation_uri' => 'https://www.rubydoc.info/gems/url_canonicalize',
+    'homepage_uri' => s.homepage,
+    'source_code_uri' => s.homepage,
+    'rubygems_mfa_required' => 'true'
+  }
 
   s.add_dependency 'addressable', '~> 2' # To normalize URLs
   s.add_dependency 'nokogiri', '>= 1.13' # To look for <link rel="canonical" ...> in HTML
-  s.metadata['rubygems_mfa_required'] = 'true'
 end

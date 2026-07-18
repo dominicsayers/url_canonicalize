@@ -1,16 +1,14 @@
 # URLCanonicalize
-[![Gem Version](https://badge.fury.io/rb/url_canonicalize.svg)](https://rubygems.org/gems/url_canonicalize)
+[![Gem Version](https://img.shields.io/gem/v/url_canonicalize.svg)](https://rubygems.org/gems/url_canonicalize)
 [![Gem downloads](https://img.shields.io/gem/dt/url_canonicalize.svg)](https://rubygems.org/gems/url_canonicalize)
-[![Build status](https://img.shields.io/circleci/project/dominicsayers/url_canonicalize/master.svg)](https://circleci.com/gh/dominicsayers/url_canonicalize)
-[![Maintainability](https://api.codeclimate.com/v1/badges/1f92f784d12741a942ec/maintainability)](https://codeclimate.com/github/dominicsayers/url_canonicalize/maintainability)
-[![Coverage Status](https://coveralls.io/repos/github/dominicsayers/url_canonicalize/badge.svg?branch=master)](https://coveralls.io/github/dominicsayers/url_canonicalize?branch=master)
-[![Dependency Status](https://dependencyci.com/github/dominicsayers/url_canonicalize/badge)](https://dependencyci.com/github/dominicsayers/url_canonicalize)
-[![Security](https://hakiri.io/github/dominicsayers/url_canonicalize/master.svg)](https://hakiri.io/github/dominicsayers/url_canonicalize/master)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1b8d50209b8c41a2b8200e25a63d57b3)](https://www.codacy.com/app/dominicsayers/url_canonicalize)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/dominicsayers/url_canonicalize/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/dominicsayers/url_canonicalize/tree/main)
+[![CodeQL](https://github.com/dominicsayers/url_canonicalize/actions/workflows/codeql-analysis.yml/badge.svg?branch=main)](https://github.com/dominicsayers/url_canonicalize/actions/workflows/codeql-analysis.yml)
 
 URLCanonicalize is a Ruby gem that finds the canonical version of a URL. It
 provides `canonicalize` methods for the String, URI::HTTP, URI::HTTPS and
 Addressable::URI classes.
+
+Ruby 3.1 or later is required.
 
 ## Installation
 
@@ -21,6 +19,9 @@ gem 'url_canonicalize'
 ```
 
 ## Usage
+
+Requiring the gem extends `String`, `URI::HTTP`, `URI::HTTPS` and
+`Addressable::URI` with a `canonicalize` method:
 
 ```ruby
 'http://www.twitter.com'.canonicalize # => 'https://twitter.com/'
@@ -42,6 +43,10 @@ URLCanonicalize.fetch(
 
 'https://example.com/article'.canonicalize(total_timeout: 10)
 ```
+
+If you prefer the module API without the core-class extensions, call
+`URLCanonicalize.canonicalize(url)` (returns the canonical URL string) or
+`URLCanonicalize.fetch(url)` (returns the full response object).
 
 ## Security and limits
 
@@ -135,6 +140,29 @@ response if there is one, and raises `URLCanonicalize::Exception::Redirect`
 otherwise. When a failure is caused by an underlying exception, that exception
 is preserved as the `cause` of the raised
 `URLCanonicalize::Exception::Failure`.
+
+## Errors
+
+All errors raised by the gem are subclasses of `URLCanonicalize::Exception`,
+so `rescue URLCanonicalize::Exception` catches everything below:
+
+| Exception | Raised when |
+| --------- | ----------- |
+| `Exception::URI` | the URL cannot be parsed, or is not `http`/`https` |
+| `Exception::Security` | a destination violates the SSRF, userinfo or port policy |
+| `Exception::Redirect` | a redirect or canonical-link chain loops or exceeds `max_redirects` |
+| `Exception::Timeout` | the operation exceeds `total_timeout` |
+| `Exception::ResponseTooLarge` | a response body exceeds `max_body_bytes` |
+| `Exception::Failure` | the request fails (network error, TLS failure or unsuccessful HTTP status) |
+
+When a failure wraps an underlying exception, the original is available as the
+raised error's `cause`.
+
+## Contributing and security
+
+Development and release instructions are in
+[CONTRIBUTING.md](CONTRIBUTING.md). Please report vulnerabilities privately as
+described in [SECURITY.md](SECURITY.md), not through public issues.
 
 ## More Information
 

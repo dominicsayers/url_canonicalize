@@ -1,0 +1,46 @@
+name: Verify gem
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Build the gem
+        run: gem build url_canonicalize.gemspec -o url_canonicalize.gem
+
+      - name: Verify the gem contains exactly the whitelisted files
+        run: |
+          ruby -rrubygems/package -e '
+            files = Gem::Package.new("url_canonicalize.gem").contents.sort
+            expected = (Dir.glob("lib/**/*.rb") + %w[CHANGELOG.md LICENSE README.md SECURITY.md]).sort
+            unless files == expected
+              warn "Unexpected gem contents"
+              warn "  extra:   #{(files - expected).join(", ")}"
+              warn "  missing: #{(expected - files).join(", ")}"
+              abort
+            end
+            puts files
+          '
+
+      - name: Install the gem in a clean environment and require it
+        run: |
+          gem install url_canonicalize.gem --install-dir tmp/clean-gem-home --no-document
+          GEM_HOME=tmp/clean-gem-home GEM_PATH=tmp/clean-gem-home ruby -e '
+            require "url_canonicalize"
+            raise "String#canonicalize missing" unless "".respond_to?(:canonicalize)
+            puts "url_canonicalize #{URLCanonicalize::VERSION} installed and required cleanly"
+          '
