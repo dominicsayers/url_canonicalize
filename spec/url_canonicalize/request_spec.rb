@@ -411,7 +411,7 @@ describe URLCanonicalize::Request do
           stub_request(:any, url).to_return(status: [http_code_from(klass), message])
           expect_exception URLCanonicalize::Exception::Failure, test
         else
-          expect(true).to be_false
+          raise ArgumentError, "Unhandled outcome: #{outcome.inspect}"
         end
       end
     end
