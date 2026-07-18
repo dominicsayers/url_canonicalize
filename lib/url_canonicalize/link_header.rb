@@ -8,7 +8,7 @@ module URLCanonicalize
     REL_PARAM = /;\s*rel\s*=\s*(?:"([^"]*)"|([^",;\s]+))/i
     CANONICAL = 'canonical'
 
-    module_function
+    extend self
 
     def canonical(response)
       fields = response.get_fields('link')

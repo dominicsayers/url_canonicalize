@@ -43,6 +43,10 @@ Naming/FileName:
   Description: 'Use snake_case for source file names.'
   Enabled: true
 
+Style/ModuleFunction:
+  Description: 'Match the SonarCloud rule S7918, which prefers extend self.'
+  EnforcedStyle: extend_self
+
 Style/ClassAndModuleChildren:
   Description: 'Checks style of children classes and modules.'
   EnforcedStyle: nested

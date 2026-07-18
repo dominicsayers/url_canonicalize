@@ -166,7 +166,7 @@ describe URLCanonicalize::HTTP do
     it 'rejects an oversized Content-Length before reading the body' do
       request = Net::HTTP::Get.new('https://example.com')
       response = response_with(content_type: 'text/html', content_length: 6)
-      allow(response).to receive(:read_body) { raise 'body should not be read' }
+      allow(response).to receive(:read_body) { raise IOError, 'body should not be read' }
       stub_response(client, request, response)
 
       expect { operation.do_request(request) }.to raise_error(
