@@ -196,6 +196,19 @@ RSpec.describe ReleaseTools::Prepare do
         .to eq(untracked_tree_failure)
     end
 
+    it 'reports a missing repository root as a release error' do
+      missing_root = File.join(root, 'does-not-exist')
+
+      expect { run_with_arguments(['1.2.3'], at_root: missing_root) }
+        .to raise_error(ReleaseTools::Error, /does-not-exist/)
+    end
+
+    it 'rejects a current VERSION outside the X.Y.Z format' do
+      File.write(version_path, PrepareSpecSupport::CURRENT_VERSION_CONTENTS.sub("'1.2.2'", "'1.2'"))
+
+      expect { prepare }.to raise_error(ReleaseTools::Error, /Current VERSION must use the X\.Y\.Z format/)
+    end
+
     it 'rejects a requested version equal to the current version' do
       equal_runner = PrepareSpecSupport::FakeRunner.new(branch: 'release-v1.2.2')
 
@@ -236,6 +249,13 @@ RSpec.describe ReleaseTools::Prepare do
       File.write(changelog_path, duplicate)
 
       expect { prepare }.to raise_error(ReleaseTools::Error, /exactly one Unreleased heading/)
+    end
+
+    it 'requires an Unreleased comparison link even when nothing follows the notes' do
+      no_boundary = "# Changelog\n\n## [Unreleased]\n\n#{PrepareSpecSupport::UNRELEASED_NOTES}"
+      File.write(changelog_path, no_boundary)
+
+      expect { prepare }.to raise_error(ReleaseTools::Error, /exactly one Unreleased comparison link/)
     end
 
     it 'rejects duplicate Unreleased comparison links' do
@@ -387,6 +407,21 @@ RSpec.describe ReleaseTools::Prepare do
   end
 
   describe 'transactional file installation' do
+    it 'reports staging failures without changing either release file' do
+      error = with_read_only(File.dirname(version_path)) { release_error }
+
+      expect([error.message, File.binread(version_path), File.binread(changelog_path)])
+        .to match([/Could not stage release files/, PrepareSpecSupport::CURRENT_VERSION_CONTENTS,
+                   PrepareSpecSupport::CHANGELOG_CONTENTS])
+    end
+
+    it 'tolerates temporary file cleanup failures after a failed installation' do
+      allow(FileUtils).to receive(:rm_f).and_raise(Errno::EACCES.new('temporary file'))
+      writer = described_class::TransactionalWriter.new(renamer: PrepareSpecSupport::RenameSequence.new(2))
+
+      expect(release_error(with_writer: writer).message).to include('original release files were restored')
+    end
+
     it 'restores both originals and removes temporary files when the second installation fails' do
       renamer = PrepareSpecSupport::RenameSequence.new(2)
       writer = described_class::TransactionalWriter.new(renamer: renamer)
@@ -450,6 +485,13 @@ RSpec.describe ReleaseTools::Prepare do
 
   def release_temp_files
     Dir.glob(File.join(root, '**', '.*.release-*'))
+  end
+
+  def with_read_only(path)
+    File.chmod(0o555, path)
+    yield
+  ensure
+    File.chmod(0o755, path)
   end
 
   def changelog_with_existing_heading
