@@ -332,6 +332,18 @@ RSpec.describe ReleaseTools::Publish do
       expect(publish_error(malformed_runner).message).to include('Malformed merged pull request JSON')
     end
 
+    it 'rejects pull request JSON that is not an array' do
+      malformed_runner = PublishSpecSupport.successful_runner.replace_capture(PublishSpecSupport::PR_COMMAND, '{}')
+
+      expect(publish_error(malformed_runner).message).to include('expected a JSON array')
+    end
+
+    it 'rejects a pull request entry that is not an object' do
+      malformed_runner = PublishSpecSupport.successful_runner.replace_capture(PublishSpecSupport::PR_COMMAND, '[42]')
+
+      expect(publish_error(malformed_runner).message).to match(/missing.*merge commit SHA/i)
+    end
+
     it 'requires a usable merge commit SHA and pull request metadata' do
       missing_sha = '[{"number":123,"url":"https://example.test/pr/123","mergeCommit":null,"mergedAt":"now"}]'
       malformed_runner = PublishSpecSupport.successful_runner
@@ -430,6 +442,20 @@ RSpec.describe ReleaseTools::Publish do
         .to match([include('Remote tag', PublishSpecSupport::OTHER_SHA), []])
     end
 
+    it 'rejects unexpected local tag reference data' do
+      references = "refs/tags/#{PublishSpecSupport::TAG}\nrefs/tags/#{PublishSpecSupport::TAG}-rc1\n"
+      tag_runner = PublishSpecSupport.successful_runner
+                                     .replace_capture(PublishSpecSupport::LOCAL_REF_COMMAND, references)
+
+      expect(publish_error(tag_runner).message).to include('Unexpected local tag data')
+    end
+
+    it 'rejects a local tag that does not resolve to a commit' do
+      tag_runner = PublishSpecSupport.successful_runner(local_sha: 'not-a-commit-sha')
+
+      expect(publish_error(tag_runner).message).to include('does not resolve to a commit')
+    end
+
     it 'rejects malformed or ambiguous remote tag output' do
       ambiguous = <<~TAGS
         #{PublishSpecSupport::SHA}\trefs/tags/#{PublishSpecSupport::TAG}
@@ -505,6 +531,25 @@ RSpec.describe ReleaseTools::Publish do
 
       expect([publish_error(malformed_runner).message, watch_activity(malformed_runner)])
         .to match([include('Malformed release workflow run JSON'), []])
+    end
+
+    it 'rejects workflow JSON that is not an array' do
+      malformed_runner = PublishSpecSupport.successful_runner(run_ids: ['{}'])
+
+      expect(publish_error(malformed_runner).message).to include('expected a JSON array')
+    end
+
+    it 'rejects a workflow run entry that is not an object' do
+      malformed_runner = PublishSpecSupport.successful_runner(run_ids: ['[42]'])
+
+      expect(publish_error(malformed_runner).message).to include('valid ref, SHA, event, or createdAt')
+    end
+
+    it 'rejects workflow run data whose createdAt is not a valid timestamp' do
+      malformed = PublishSpecSupport.successful_run_json.sub('2026-07-18T12:00:00Z', 'not-a-timestamp')
+      malformed_runner = PublishSpecSupport.successful_runner(run_ids: [malformed])
+
+      expect(publish_error(malformed_runner).message).to include('valid ref, SHA, event, or createdAt')
     end
 
     it 'requires a usable workflow database ID' do

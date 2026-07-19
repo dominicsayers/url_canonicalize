@@ -390,6 +390,9 @@ module ReleaseTools
   end
 end
 
+# The guarded entry point runs only in a subprocess, which SimpleCov cannot
+# observe; the executable entry point specs verify it end to end.
+# :nocov:
 if $PROGRAM_NAME == __FILE__
   begin
     ReleaseTools::Publish.run(ARGV)
@@ -398,3 +401,4 @@ if $PROGRAM_NAME == __FILE__
     exit 1
   end
 end
+# :nocov:

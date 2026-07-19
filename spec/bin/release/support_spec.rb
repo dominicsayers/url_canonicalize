@@ -54,10 +54,20 @@ RSpec.describe ReleaseTools::Version do
 
       expect(versions.sort.map(&:to_s)).to eq(%w[1.9.0 1.10.0 2.0.0])
     end
+
+    it 'does not order against other types' do
+      expect(described_class.parse('1.2.3') <=> '1.2.3').to be_nil
+    end
   end
 end
 
 RSpec.describe ReleaseTools::Runner do
+  # Real commands spawn outside Bundler's environment so their output cannot
+  # be polluted by RUBYOPT-injected warnings from mismatched RubyGems versions.
+  around do |example|
+    Bundler.with_unbundled_env { example.run }
+  end
+
   let(:stdout) { StringIO.new }
   let(:stderr) { StringIO.new }
   let(:sleep_durations) { [] }
@@ -161,6 +171,13 @@ RSpec.describe ReleaseTools::Runner do
         expect { runner.run(missing_executable, '--version') }
           .to raise_error(ReleaseTools::Error, /Command could not be executed:.*missing-command/m)
       end
+    end
+
+    it 'wraps operating system spawn failures with command context' do
+      allow(runner).to receive(:system).and_raise(Errno::EACCES.new('restricted'))
+
+      expect { runner.run(RbConfig.ruby, '-e', 'exit 0') }
+        .to raise_error(ReleaseTools::Error, /Command could not be executed:.*Permission denied/m)
     end
   end
 
