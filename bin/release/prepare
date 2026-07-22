@@ -24,7 +24,7 @@ module ReleaseTools
       %w[mise exec -- bundle install],
       %w[mise exec -- bundle exec rspec],
       %w[mise exec -- bundle exec rubocop],
-      %w[mise exec -- bundle exec gem build url_canonicalize.gemspec]
+      %w[mise exec -- bundle exec rake build]
     ].freeze
 
     class TransactionalWriter
