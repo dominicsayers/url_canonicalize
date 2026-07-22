@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    url_canonicalize (1.0.0)
+    url_canonicalize (1.0.1)
       addressable (~> 2)
       nokogiri (>= 1.13)
 
@@ -22,7 +22,9 @@ GEM
     json (2.21.1)
     language_server-protocol (3.17.0.6)
     lint_roller (1.1.0)
-    nokogiri (1.18.9-x86_64-linux-gnu)
+    mini_portile2 (2.8.9)
+    nokogiri (1.18.9)
+      mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
     parallel (1.28.0)
     parser (3.3.11.1)
