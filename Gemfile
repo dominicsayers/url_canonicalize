@@ -18,4 +18,5 @@ end
 
 group :build do
   gem 'gem-release', require: false
+  gem 'rake', require: false
 end

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'bundler'
 require 'date'
 require 'fileutils'
 require 'open3'
@@ -40,7 +41,7 @@ module PrepareSpecSupport
     %w[mise exec -- bundle install],
     %w[mise exec -- bundle exec rspec],
     %w[mise exec -- bundle exec rubocop],
-    %w[mise exec -- bundle exec gem build url_canonicalize.gemspec]
+    %w[mise exec -- bundle exec rake build]
   ].freeze
 
   class FakeRunner
@@ -348,6 +349,10 @@ RSpec.describe ReleaseTools::Prepare do
         [1.2.3]: https://github.com/dominicsayers/url_canonicalize/compare/v1.2.2...v1.2.3
         [1.2.2]: https://github.com/dominicsayers/url_canonicalize/compare/v1.2.1...v1.2.2
       MARKDOWN
+    end
+
+    it 'includes Rake in the bundle used by release verification' do
+      expect(Bundler.load.specs.map(&:name)).to include('rake')
     end
 
     it 'updates the VERSION assignment exactly' do
