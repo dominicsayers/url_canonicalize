@@ -3,6 +3,7 @@
 
 require 'date'
 require 'fileutils'
+require 'shellwords'
 require 'tempfile'
 require_relative 'support'
 
@@ -151,13 +152,7 @@ module ReleaseTools
     end
 
     def call
-      Dir.chdir(root) do
-        guard_repository!
-        version_contents, current_version = transformed_version_file
-        changelog_contents = transformed_changelog(current_version)
-        write_release_files(version_contents, changelog_contents)
-        run_verification_commands
-      end
+      Dir.chdir(root) { prepare_release }
       print_next_steps
       true
     rescue SystemCallError => e
@@ -167,6 +162,19 @@ module ReleaseTools
     private
 
     attr_reader :root, :runner, :today, :version, :writer
+
+    def prepare_release
+      announce('Checking the release branch and working tree')
+      guard_repository!
+      announce("Updating #{VERSION_FILE} and #{CHANGELOG_FILE}")
+      version_contents, current_version = transformed_version_file
+      write_release_files(version_contents, transformed_changelog(current_version))
+      run_verification_commands
+    end
+
+    def announce(message)
+      runner.puts("#{message}...")
+    end
 
     def guard_repository!
       branch = runner.capture('git', 'symbolic-ref', '--quiet', '--short', 'HEAD').strip
@@ -216,7 +224,10 @@ module ReleaseTools
     end
 
     def run_verification_commands
-      VERIFICATION_COMMANDS.each { |command| runner.run(*command) }
+      VERIFICATION_COMMANDS.each do |command|
+        announce("Running: #{Shellwords.join(command)}")
+        runner.run(*command)
+      end
     end
 
     def print_next_steps

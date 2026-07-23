@@ -404,6 +404,22 @@ RSpec.describe ReleaseTools::Prepare do
       expect(git_actions & %w[add commit push tag switch checkout]).to be_empty
     end
 
+    it 'announces each preparation step before running it' do
+      prepare
+
+      expect(runner.stdout.string).to include('Checking the release branch and working tree',
+                                              'Updating lib/url_canonicalize/version.rb and CHANGELOG.md',
+                                              'Running: mise exec -- bundle install',
+                                              'Running: mise exec -- bundle exec rake build')
+    end
+
+    it 'announces the failing verification command before it fails' do
+      failing_runner = PrepareSpecSupport::FakeRunner.new(fail_on: PrepareSpecSupport::VERIFICATION_COMMANDS.fetch(1))
+      release_error(with_runner: failing_runner)
+
+      expect(failing_runner.stdout.string).to include('Running: mise exec -- bundle exec rspec')
+    end
+
     it 'tells the maintainer how to finish the pull request step' do
       prepare
 
