@@ -8,6 +8,19 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- Add `rake` to the development bundle so the `rake build` release check can
+  run ([#204](https://github.com/dominicsayers/url_canonicalize/pull/204))
+
+### Changed
+
+- Announce each step of `bin/release/prepare` as it starts so the command
+  shows progress instead of appearing to hang
+  ([#206](https://github.com/dominicsayers/url_canonicalize/pull/206))
+- Update the `ruby/setup-ruby` CI action to v1.321.0
+  ([#205](https://github.com/dominicsayers/url_canonicalize/pull/205))
+
 ## [1.0.1] - 2026-07-22
 
 ### Security
