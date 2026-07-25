@@ -54,7 +54,7 @@ replace it with the version you are actually releasing.
    git switch main
    git pull --ff-only origin main
    git switch -c "release-v${release_version}"
-   mise exec -- bin/release/prepare "$release_version"
+   mise exec -- bundle exec release_ceremony prepare "$release_version"
    ```
 
    `prepare` requires exactly that release branch and a clean working tree. It
@@ -90,7 +90,7 @@ replace it with the version you are actually releasing.
 
    ```sh
    release_version=1.2.3
-   mise exec -- bin/release/publish "$release_version"
+   mise exec -- bundle exec release_ceremony publish "$release_version"
    ```
 
    `publish` fetches `origin/main` without modifying local `main` or fetching
@@ -107,5 +107,12 @@ replace it with the version you are actually releasing.
    select **Review deployments**, select `release`, and choose **Approve and
    deploy**.
 
-Run `mise exec -- bin/release/prepare --help` or
-`mise exec -- bin/release/publish --help` for a command summary.
+Run `mise exec -- bundle exec release_ceremony prepare --help` or
+`mise exec -- bundle exec release_ceremony publish --help` for a command
+summary.
+
+The release commands come from the
+[`release_ceremony`](https://github.com/dominicsayers/release_ceremony) gem,
+which detects the gem name, repository URL, and file paths from the gemspec;
+[`.release_ceremony.yml`](.release_ceremony.yml) overrides only the
+verification commands so they run through mise.
