@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
-# SimpleCov
-unless ENV['NO_SIMPLECOV']
-  require 'simplecov'
+require 'simplecov'
+require 'webmock/rspec'
 
+# SimpleCov must start before the code under test is required so every lib
+# file is tracked from its first load; NO_SIMPLECOV skips coverage entirely
+unless ENV['NO_SIMPLECOV']
   SimpleCov.start do
     add_filter '/spec/'
     enable_coverage :branch
@@ -14,12 +16,9 @@ unless ENV['NO_SIMPLECOV']
   end
 end
 
-# Webmock
-require 'webmock/rspec'
-WebMock.disable_net_connect!(allow_localhost: true)
-
-# Specs
 require 'url_canonicalize'
+
+WebMock.disable_net_connect!(allow_localhost: true)
 
 # Set an environment variable for the duration of a block, restoring the
 # original value afterwards so no example leaks environment state
