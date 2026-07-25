@@ -8,12 +8,57 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- `URLCanonicalize::Client`, a reusable, thread-safe client whose options are
+  validated and frozen at construction; request headers, a logger and the
+  transport are configurable, so tests can inject a fake transport or
+  resolver
+  ([#186](https://github.com/dominicsayers/url_canonicalize/issues/186))
+- Documented, table-tested URL normalization per RFC 3986: lowercase scheme
+  and host, punycode hosts, normalized percent-encoding, resolved dot
+  segments, removed default ports and stripped fragments, applied to the
+  input, every hop and the returned URL
+  ([#187](https://github.com/dominicsayers/url_canonicalize/issues/187))
+- SonarQube quality gate badge in the README
+  ([#196](https://github.com/dominicsayers/url_canonicalize/issues/196))
+
 ### Changed
 
+- **Breaking:** the core-class extensions (`String#canonicalize` and friends)
+  are opt-in via `require 'url_canonicalize/core_ext'`; requiring the gem
+  alone no longer patches anything
+  ([#186](https://github.com/dominicsayers/url_canonicalize/issues/186))
+- **Breaking:** `URLCanonicalize.fetch` returns an immutable
+  `URLCanonicalize::Result` exposing the canonical URL, the confirming
+  response, the parsed HTML, the request chain and the discovery source
+  ([#186](https://github.com/dominicsayers/url_canonicalize/issues/186))
+- **Breaking:** returned URLs are normalized (an empty path becomes `/`) and
+  a scheme is recognized only as a leading `scheme:` token, so a colon later
+  in a bare host's path no longer causes a parse error
+  ([#187](https://github.com/dominicsayers/url_canonicalize/issues/187))
+- **Breaking:** Ruby 3.3 or later is required; CI tests Ruby 3.3, 3.4 and
+  4.0 on GitHub Actions and the Travis and CircleCI configurations are gone
+  ([#188](https://github.com/dominicsayers/url_canonicalize/issues/188))
+- Debug output moved from the `DEBUG` environment variable to the `logger`
+  option
+  ([#186](https://github.com/dominicsayers/url_canonicalize/issues/186))
+- Update nokogiri to 1.19.4, fixing all eleven open Dependabot alerts
+  ([#210](https://github.com/dominicsayers/url_canonicalize/issues/210))
 - Replace the `bin/release` scripts with the
   [`release_ceremony`](https://github.com/dominicsayers/release_ceremony) gem
   they were extracted into; the release commands are now
   `bundle exec release_ceremony prepare|publish VERSION`
+
+### Removed
+
+- Hound and CodeClimate configuration; RuboCop in CI and SonarQube Cloud
+  cover static analysis
+  ([#211](https://github.com/dominicsayers/url_canonicalize/issues/211),
+  [#195](https://github.com/dominicsayers/url_canonicalize/issues/195))
+- The RuboCop to-do file; its offences are fixed and the deliberate spec
+  limits are explicit policy in `.rubocop.yml`
+  ([#198](https://github.com/dominicsayers/url_canonicalize/issues/198))
 
 ## [1.0.2] - 2026-07-24
 
