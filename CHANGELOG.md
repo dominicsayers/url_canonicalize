@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-07-25
+
 ### Added
 
 - `URLCanonicalize::Client`, a reusable, thread-safe client whose options are
@@ -141,7 +143,8 @@ changelog format. Their history is available from the
 and the
 [commit log](https://github.com/dominicsayers/url_canonicalize/commits/v0.1.15).
 
-[Unreleased]: https://github.com/dominicsayers/url_canonicalize/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/dominicsayers/url_canonicalize/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/dominicsayers/url_canonicalize/compare/v1.0.2...v2.0.0
 [1.0.2]: https://github.com/dominicsayers/url_canonicalize/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/dominicsayers/url_canonicalize/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/dominicsayers/url_canonicalize/compare/v0.2.1...v1.0.0
