@@ -2,5 +2,14 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "description": "Group development-only gems into one weekly PR; they are not user-visible so they get no changelog entry. Runtime gems, CI actions and vulnerability alerts still arrive as individual PRs.",
+      "matchManagers": ["bundler"],
+      "matchDepTypes": ["static_code_analysis", "test", "build"],
+      "groupName": "development dependencies",
+      "schedule": ["before 9am on monday"]
+    }
   ]
 }
