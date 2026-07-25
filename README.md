@@ -3,6 +3,7 @@
 [![Gem downloads](https://img.shields.io/gem/dt/url_canonicalize.svg)](https://rubygems.org/gems/url_canonicalize)
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/dominicsayers/url_canonicalize/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/dominicsayers/url_canonicalize/tree/main)
 [![CodeQL](https://github.com/dominicsayers/url_canonicalize/actions/workflows/codeql-analysis.yml/badge.svg?branch=main)](https://github.com/dominicsayers/url_canonicalize/actions/workflows/codeql-analysis.yml)
+[![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=dominicsayers_url_canonicalize&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=dominicsayers_url_canonicalize)
 
 URLCanonicalize is a Ruby gem that finds the canonical version of a URL. It
 provides `canonicalize` methods for the String, URI::HTTP, URI::HTTPS and
