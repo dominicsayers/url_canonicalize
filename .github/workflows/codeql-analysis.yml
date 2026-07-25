@@ -20,17 +20,26 @@ jobs:
       contents: read
       security-events: write
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Ruby is interpreted, so CodeQL scans the sources directly and no
+          # build step is needed
+          - language: ruby
+            build-mode: none
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      # Ruby is interpreted, so CodeQL scans the sources directly and no
-      # build step is needed
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
-          languages: ruby
-          build-mode: none
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{ matrix.language }}"
