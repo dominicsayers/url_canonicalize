@@ -40,7 +40,7 @@ module URLCanonicalize
       end
 
       def decorate(url)
-        return url if SCHEME.match?(url)
+        return url if url.match?(SCHEME)
 
         "http://#{url}" # Add protocol if we just receive a host name
       end
