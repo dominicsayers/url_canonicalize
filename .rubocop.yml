@@ -7,7 +7,7 @@ plugins:
 AllCops:
   DisplayStyleGuide: true
   DisplayCopNames: true
-  TargetRubyVersion: 3.1
+  TargetRubyVersion: 3.3
   NewCops: enable
 
 Layout/DotPosition:

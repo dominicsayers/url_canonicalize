@@ -36,9 +36,9 @@ module URLCanonicalize
       end
     end
 
-    def initialize(raw_url, **options)
+    def initialize(raw_url, **)
       @raw_url = raw_url
-      @options = URLCanonicalize::Options.new(**options)
+      @options = URLCanonicalize::Options.new(**)
     end
 
     # Fetch the response

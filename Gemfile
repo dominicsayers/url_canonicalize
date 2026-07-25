@@ -12,7 +12,6 @@ end
 
 group :test do
   gem 'rspec'
-  gem 'rspec_junit_formatter'
   gem 'simplecov', '~> 0.22.0'
   gem 'webmock'
 end

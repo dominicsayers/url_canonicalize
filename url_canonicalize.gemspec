@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.homepage      = 'https://github.com/dominicsayers/url_canonicalize'
   s.license       = 'MIT'
 
-  s.required_ruby_version = '>= 3.1.0'
+  s.required_ruby_version = '>= 3.3.0'
 
   # A deterministic whitelist: runtime code plus user-facing documentation.
   # Development configuration is deliberately not packaged.
