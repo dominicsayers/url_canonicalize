@@ -6,8 +6,8 @@
 [![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=dominicsayers_url_canonicalize&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=dominicsayers_url_canonicalize)
 
 URLCanonicalize is a Ruby gem that finds the canonical version of a URL. It
-provides `canonicalize` methods for the String, URI::HTTP, URI::HTTPS and
-Addressable::URI classes.
+provides a configurable client API, and optional `canonicalize` extension
+methods for the String, URI::HTTP, URI::HTTPS and Addressable::URI classes.
 
 Ruby 3.3 or later is required.
 
@@ -21,33 +21,72 @@ gem 'url_canonicalize'
 
 ## Usage
 
-Requiring the gem extends `String`, `URI::HTTP`, `URI::HTTPS` and
-`Addressable::URI` with a `canonicalize` method:
+The primary API is a reusable client. Its options are validated and frozen at
+construction, so one client can be shared safely between threads:
 
 ```ruby
+client = URLCanonicalize::Client.new(
+  total_timeout: 10,
+  max_redirects: 8,
+  max_body_bytes: 512_000
+)
+
+client.canonicalize('http://www.twitter.com') # => 'https://twitter.com/'
+```
+
+For one-off calls the module methods accept the same options and build a
+client internally:
+
+```ruby
+URLCanonicalize.canonicalize('http://www.twitter.com') # => 'https://twitter.com/'
+URLCanonicalize.fetch('http://www.twitter.com')        # => #<URLCanonicalize::Result ...>
+```
+
+`canonicalize` returns the canonical URL as a string. `fetch` returns an
+immutable `URLCanonicalize::Result` with:
+
+- `url` — the canonical URL;
+- `response` — the `Net::HTTPResponse` that confirmed it;
+- `html` — the parsed Nokogiri document when the response was HTML;
+- `chain` — the request chain: each hop's URL and how it was discovered
+  (`:initial`, `:redirect` or `:canonical_link`);
+- `source` — how the final URL was discovered.
+
+### Configuration
+
+Beyond the security limits described below, the client accepts:
+
+- `headers` — the request headers to send (replaces the default browser-like
+  `User-Agent` and `Accept-Language`);
+- `logger` — any object responding to `debug`; each request and discovered
+  canonical URL is logged. Nothing is logged by default;
+- `transport` — anything responding to `call(uri, options)` and returning a
+  `Net::HTTP`-compatible connection. The default transport resolves and
+  validates the destination address (see below) and configures TLS and
+  timeouts. Tests can inject a fake transport to avoid the network entirely;
+  a custom resolver can be injected with
+  `URLCanonicalize::Transport.new(resolver: ...)`.
+
+### Core-class extensions
+
+The core-class extensions are opt-in. Requiring `url_canonicalize/core_ext`
+extends `String`, `URI::HTTP`, `URI::HTTPS` and `Addressable::URI` with a
+`canonicalize` method:
+
+```ruby
+require 'url_canonicalize/core_ext'
+
 'http://www.twitter.com'.canonicalize # => 'https://twitter.com/'
 
 URI('http://www.twitter.com').canonicalize # => #<URI::HTTP:0x00000008767908 URL:https://twitter.com/>
 
 Addressable::URI.canonicalize('http://www.twitter.com') # => #<Addressable::URI:0x43c9 URI:https://twitter.com/>
-```
-
-Options can be passed to the module API or any of the `canonicalize` extension
-methods:
-
-```ruby
-URLCanonicalize.fetch(
-  'https://example.com/article',
-  total_timeout: 10,
-  max_body_bytes: 512_000
-)
 
 'https://example.com/article'.canonicalize(total_timeout: 10)
 ```
 
-If you prefer the module API without the core-class extensions, call
-`URLCanonicalize.canonicalize(url)` (returns the canonical URL string) or
-`URLCanonicalize.fetch(url)` (returns the full response object).
+Requiring `url_canonicalize` alone no longer patches any core class: if you
+relied on the extensions, add the extra require.
 
 ## Security and limits
 

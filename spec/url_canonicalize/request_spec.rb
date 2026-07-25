@@ -66,9 +66,16 @@ describe URLCanonicalize::Request do
         .to be_a(URLCanonicalize::Response::Failure)
     end
 
-    context 'with debug logging' do
+    context 'with a configured logger' do
       let(:url) { 'https://twitter.com' }
-      let(:http) { URLCanonicalize::HTTP.new(url) }
+      let(:log_lines) { [] }
+      let(:logger) do
+        lines = log_lines
+        Object.new.tap do |object|
+          object.define_singleton_method(:debug) { |&block| lines << block.call }
+        end
+      end
+      let(:http) { URLCanonicalize::HTTP.new(url, logger: logger) }
       let(:request) { described_class.new(http) }
       let(:response) do
         r = Net::HTTPOK.new('1.1', '200', '')
@@ -83,30 +90,32 @@ describe URLCanonicalize::Request do
         request.with_uri(URLCanonicalize::URI.parse(url)).fetch
       end
 
-      it 'logs the response if required' do
-        with_env('DEBUG', 'true') do
-          expect { fetch }.to output(%r{GET https://twitter.com 200}).to_stdout
-        end
+      it 'logs each request to the logger' do
+        fetch
+
+        expect(log_lines).to include(match(%r{GET https://twitter.com 200}))
       end
 
-      it 'logs response headers when DEBUG is headers' do
-        with_env('DEBUG', 'headers') do
-          expect { fetch }.to output(%r{content-type:\ttext/html}i).to_stdout
-        end
+      it 'does not write log lines to stdout' do
+        expect { fetch }.not_to output.to_stdout
       end
 
-      it 'does not log response headers for other DEBUG values' do
-        with_env('DEBUG', 'true') do
-          expect { fetch }.not_to output(/content-type/i).to_stdout
-        end
-      end
-
-      it 'logs a found canonical URL if required' do
+      it 'logs a found canonical URL' do
         response['Link'] = '<https://twitter.com/canonical>; rel="canonical"'
 
-        with_env('DEBUG', 'true') do
-          expect { fetch }.to output(%r{canonical_url:\thttps://twitter.com/canonical}).to_stdout
-        end
+        fetch
+
+        expect(log_lines).to include(match(%r{canonical_url: https://twitter.com/canonical}))
+      end
+
+      it 'logs nothing when no logger is configured' do
+        silent_http = URLCanonicalize::HTTP.new(url)
+        silent_request = described_class.new(silent_http)
+        allow(silent_request).to receive(:do_http_request).and_return(response)
+
+        silent_request.with_uri(URLCanonicalize::URI.parse(url)).fetch
+
+        expect(log_lines).to be_empty
       end
     end
 
@@ -401,7 +410,7 @@ describe URLCanonicalize::Request do
         case outcome
         when :success
           stub_request(:any, url)
-          expect(URLCanonicalize.fetch(url)).to be_a(URLCanonicalize::Response::Success)
+          expect(URLCanonicalize.fetch(url)).to be_a(URLCanonicalize::Result)
         when :exception_uri
           expect_exception URLCanonicalize::Exception::URI, test
         when :exception_failure
