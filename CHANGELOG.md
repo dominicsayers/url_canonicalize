@@ -8,6 +8,13 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- Replace the `bin/release` scripts with the
+  [`release_ceremony`](https://github.com/dominicsayers/release_ceremony) gem
+  they were extracted into; the release commands are now
+  `bundle exec release_ceremony prepare|publish VERSION`
+
 ## [1.0.2] - 2026-07-24
 
 ### Fixed

@@ -1,0 +1,7 @@
+# Overrides for the release_ceremony gem; everything else (gem name,
+# repository URL, file paths) is detected from the gemspec.
+verification_commands:
+  - mise exec -- bundle install
+  - mise exec -- bundle exec rspec
+  - mise exec -- bundle exec rubocop
+  - mise exec -- bundle exec rake build
