@@ -41,6 +41,8 @@ jobs:
           gem install url_canonicalize.gem --install-dir tmp/clean-gem-home --no-document
           GEM_HOME=tmp/clean-gem-home GEM_PATH=tmp/clean-gem-home ruby -e '
             require "url_canonicalize"
+            raise "core extensions loaded eagerly" if "".respond_to?(:canonicalize)
+            require "url_canonicalize/core_ext"
             raise "String#canonicalize missing" unless "".respond_to?(:canonicalize)
             puts "url_canonicalize #{URLCanonicalize::VERSION} installed and required cleanly"
           '

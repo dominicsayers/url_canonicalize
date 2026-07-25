@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'addressable/uri'
+
 module Addressable
   # Patch for Addressable's URI class
   class URI

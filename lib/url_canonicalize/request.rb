@@ -122,7 +122,7 @@ module URLCanonicalize
 
     def enhanced_response
       if canonical_url
-        puts "  * canonical_url:\t#{canonical_url}" if ENV.fetch('DEBUG', nil)
+        logger&.debug { "canonical_url: #{canonical_url}" }
         response_plus = URLCanonicalize::Response::Success.new(canonical_url, response, html)
         URLCanonicalize::Response::CanonicalFound.new(canonical_url, response_plus)
       else
@@ -179,12 +179,7 @@ module URLCanonicalize
     end
 
     def headers
-      @headers ||= {
-        'Accept-Language' => 'en-US,en;q=0.8',
-        'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; WOW64) ' \
-                        'AppleWebKit/537.36 (KHTML, like Gecko) ' \
-                        'Chrome/51.0.2704.103 Safari/537.36'
-      }
+      http.options[:headers]
     end
 
     def http_method=(value)
@@ -210,14 +205,11 @@ module URLCanonicalize
     end
 
     def log_response
-      debug = ENV.fetch('DEBUG', nil)
-      return unless debug
+      logger&.debug { "#{http_method.upcase} #{url} #{response.code} #{response.message}" }
+    end
 
-      puts "#{http_method.upcase} #{url} #{response.code} #{response.message}"
-
-      return unless debug.casecmp?('headers')
-
-      response.each { |k, v| puts "  #{k}:\t#{v}" }
+    def logger
+      http.options[:logger]
     end
   end
 end

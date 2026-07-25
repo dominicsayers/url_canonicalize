@@ -16,7 +16,7 @@ describe URLCanonicalize::HTTP do
 
     it 'returns a Net::HTTPOK' do
       expect(fetch_double).to receive(:fetch).once.and_return(response)
-      expect(http.fetch).to be_a(URLCanonicalize::Response::Success)
+      expect(http.fetch).to be_a(URLCanonicalize::Result)
     end
 
     it 'handles an unexpected response' do
@@ -44,7 +44,7 @@ describe URLCanonicalize::HTTP do
     it 'handles a canonical URL different to the called URL' do
       responses = [URLCanonicalize::Response::CanonicalFound.new('http://new.url', response), response]
       expect(fetch_double).to receive(:fetch).twice.and_return(*responses)
-      expect(http.fetch).to be_a(URLCanonicalize::Response::Success)
+      expect(http.fetch).to be_a(URLCanonicalize::Result)
     end
 
     it 'terminates a canonical link cycle deterministically' do
@@ -54,7 +54,7 @@ describe URLCanonicalize::HTTP do
         URLCanonicalize::Response::CanonicalFound.new(url, response)
       ]
       expect(fetch_double).to receive(:fetch).twice.and_return(*responses)
-      expect(http.fetch).to be_a(URLCanonicalize::Response::Success)
+      expect(http.fetch).to be_a(URLCanonicalize::Result)
     end
 
     it 'counts followed canonical links against the hop budget' do
@@ -63,7 +63,7 @@ describe URLCanonicalize::HTTP do
         URLCanonicalize::Response::CanonicalFound.new("#{url}/#{i}", response)
       end
       expect(fetch_double).to receive(:fetch).exactly(3).times.and_return(*responses)
-      expect(http.fetch).to be_a(URLCanonicalize::Response::Success)
+      expect(http.fetch).to be_a(URLCanonicalize::Result)
     end
 
     it 'shares one hop budget between redirects and canonical links' do
@@ -74,7 +74,7 @@ describe URLCanonicalize::HTTP do
         URLCanonicalize::Response::Redirect.new("#{url}/3")
       ]
       expect(fetch_double).to receive(:fetch).exactly(3).times.and_return(*responses)
-      expect(http.fetch).to be_a(URLCanonicalize::Response::Success)
+      expect(http.fetch).to be_a(URLCanonicalize::Result)
     end
   end
 
@@ -264,7 +264,7 @@ describe URLCanonicalize::HTTP do
       end
 
       expect(described_class.new(url, total_timeout: 0.05).fetch)
-        .to be_a(URLCanonicalize::Response::Success)
+        .to be_a(URLCanonicalize::Result)
       expect(timeout_calls).to eq(1)
     end
   end

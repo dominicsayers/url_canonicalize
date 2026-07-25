@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'open3'
+require 'rbconfig'
+
 describe URLCanonicalize do
   context 'when delegating through the public API' do
     let(:host) { 'www.twitter.com' }
@@ -14,15 +17,29 @@ describe URLCanonicalize do
     end
 
     it 'returns successfully for a complete URL' do
-      expect(described_class.fetch(url)).to be_a(URLCanonicalize::Response::Success)
+      expect(described_class.fetch(url)).to be_a(URLCanonicalize::Result)
     end
 
     it 'returns successfully for a host name' do
-      expect(described_class.fetch(host)).to be_a(URLCanonicalize::Response::Success)
+      expect(described_class.fetch(host)).to be_a(URLCanonicalize::Result)
     end
 
     it 'canonicalizes a URL' do
-      expect(url.canonicalize).to eq(url)
+      expect(described_class.canonicalize(url)).to eq(url)
+    end
+  end
+
+  context 'when loading the library' do
+    it 'patches core classes only when core_ext is required' do
+      script = <<~RUBY
+        require 'url_canonicalize'
+        exit 1 if String.method_defined?(:canonicalize)
+        require 'url_canonicalize/core_ext'
+        exit 2 unless String.method_defined?(:canonicalize)
+      RUBY
+      _stdout, _stderr, status = Open3.capture3(RbConfig.ruby, '-e', script)
+
+      expect(status.exitstatus).to eq(0)
     end
   end
 
@@ -87,7 +104,7 @@ describe URLCanonicalize do
       stub_request(:get, url).to_return(status: 200)
 
       expect(described_class.fetch(url, allow_private_networks: true))
-        .to be_a(URLCanonicalize::Response::Success)
+        .to be_a(URLCanonicalize::Result)
     end
 
     it 'keeps using the pinned address for later paths on the same origin' do
@@ -103,7 +120,7 @@ describe URLCanonicalize do
       stub_request(:head, final_url).to_return(status: 200)
       stub_request(:get, final_url).to_return(status: 200)
 
-      expect(described_class.fetch(initial_url)).to be_a(URLCanonicalize::Response::Success)
+      expect(described_class.fetch(initial_url)).to be_a(URLCanonicalize::Result)
       expect(resolutions).to eq(1)
     end
 
@@ -136,7 +153,12 @@ describe URLCanonicalize do
       stub_request(:head, 'https://final.test/b').to_return(status: 200)
       stub_request(:get, 'https://final.test/b').to_return(status: 200)
 
-      expect(described_class.canonicalize('http://start.test')).to eq('https://final.test/b')
+      result = described_class.fetch('http://start.test')
+
+      expect([result.url, result.source, result.chain.map(&:url)]).to eq(
+        ['https://final.test/b', :redirect,
+         ['http://start.test', 'https://middle.test/a', 'https://final.test/b']]
+      )
     end
 
     it 'follows a canonical Link header and falls back to the last known good response when its target fails' do
@@ -144,7 +166,9 @@ describe URLCanonicalize do
         .to_return(status: 200, headers: { 'Link' => '</canonical>; rel=canonical' })
       stub_request(:head, 'https://site.test/canonical').to_raise(SocketError)
 
-      expect(described_class.canonicalize('https://site.test/page')).to eq('https://site.test/canonical')
+      result = described_class.fetch('https://site.test/page')
+
+      expect([result.url, result.source]).to eq(['https://site.test/canonical', :canonical_link])
     end
 
     it 'discovers a canonical link in the HTML head and resolves it against the document base URL' do
@@ -178,7 +202,7 @@ describe URLCanonicalize do
       stub_request(:head, 'https://nohead.test/').to_return(status: 405)
       stub_request(:get, 'https://nohead.test/').to_return(status: 200)
 
-      expect(described_class.fetch('https://nohead.test')).to be_a(URLCanonicalize::Response::Success)
+      expect(described_class.fetch('https://nohead.test')).to be_a(URLCanonicalize::Result)
     end
 
     it 'rejects a response body that exceeds the size limit' do

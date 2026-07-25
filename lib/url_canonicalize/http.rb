@@ -4,11 +4,12 @@ module URLCanonicalize
   # Persistent connection for possible repeated requests to the same host
   class HTTP
     def fetch
-      ::Timeout.timeout(
+      final = ::Timeout.timeout(
         options[:total_timeout],
         URLCanonicalize::Exception::Timeout,
         "Canonicalization exceeded #{options[:total_timeout]} seconds"
       ) { fetch_within_deadline }
+      build_result(final)
     end
 
     def uri
@@ -24,21 +25,28 @@ module URLCanonicalize
       http.request(http_request) { |response| read_response_body(http_request, response) }
     end
 
+    attr_reader :options
+
     private
 
     attr_accessor :last_known_good
-    attr_reader :options
+
+    def initialize(raw_url, options: nil, **values)
+      raise ArgumentError, 'Pass either options: or keyword options, not both' if options && !values.empty?
+
+      @raw_url = raw_url
+      @options = options || URLCanonicalize::Options.new(**values)
+    end
+
+    def build_result(final)
+      Result.new(url: final.url, response: final.response, html: final.html, chain: chain, source: @final_source)
+    end
 
     def fetch_within_deadline
       loop do
         result = handle_response
         break result if result
       end
-    end
-
-    def initialize(raw_url, **)
-      @raw_url = raw_url
-      @options = URLCanonicalize::Options.new(**)
     end
 
     # Fetch the response
@@ -85,47 +93,60 @@ module URLCanonicalize
 
     def handle_redirect
       reason = hop_refusal_reason
-      return follow_hop unless reason
+      return follow_hop(:redirect) unless reason
 
-      last_known_good || raise(URLCanonicalize::Exception::Redirect, reason)
+      finish_with_last_known_good || raise(URLCanonicalize::Exception::Redirect, reason)
     end
 
     def handle_canonical_found
       self.last_known_good = response.response
-      return last_known_good if hop_refusal_reason
+      return finish_with_last_known_good if hop_refusal_reason
 
-      follow_hop
+      follow_hop(:canonical_link)
+    end
+
+    # A terminal response whose URL came from a server-declared canonical link
+    def finish_with_last_known_good
+      return unless last_known_good
+
+      @final_source = :canonical_link
+      last_known_good
     end
 
     # Redirects and followed canonical links share one visited-URL set and one
     # hop budget, so any cycle or over-long chain terminates deterministically
     def hop_refusal_reason
-      return 'Redirect loop detected' if visited.include?(response_url)
+      return 'Redirect loop detected' if visited?(response_url)
       return "#{hops + 1} redirects is too many" if hops >= options[:max_redirects]
 
       nil
     end
 
-    def follow_hop
-      visited << response_url
-      @hops = hops + 1
+    def follow_hop(via)
+      chain << Result::Hop.new(url: response_url, via: via)
       self.url = response_url
       nil
     end
 
-    def visited
-      @visited ||= [url]
+    # The URLs requested so far and how each one was discovered
+    def chain
+      @chain ||= [Result::Hop.new(url: url, via: :initial)]
+    end
+
+    def visited?(candidate)
+      chain.any? { |hop| hop.url == candidate }
     end
 
     def hops
-      @hops ||= 0
+      chain.length - 1
     end
 
     def handle_failure
-      return last_known_good if last_known_good
-
-      raise URLCanonicalize::Exception::Failure, "#{response.failure_class}: #{response.message}",
-            cause: response.error
+      finish_with_last_known_good || raise(
+        URLCanonicalize::Exception::Failure,
+        "#{response.failure_class}: #{response.message}",
+        cause: response.error
+      )
     end
 
     def handle_unhandled_response
@@ -133,6 +154,7 @@ module URLCanonicalize
     end
 
     def handle_success
+      @final_source = chain.last.via
       self.last_known_good = response
     end
 
@@ -145,7 +167,7 @@ module URLCanonicalize
       return @http if same_origin? # reuse connection
 
       @previous = uri
-      @http = new_http
+      @http = options[:transport].call(uri, options)
     end
 
     def same_origin?
@@ -154,16 +176,6 @@ module URLCanonicalize
 
     def previous
       @previous ||= Struct.new(:scheme, :host, :port).new
-    end
-
-    def new_http
-      h = Net::HTTP.new uri.host, uri.port, nil
-
-      h.ipaddr = URLCanonicalize::Destination.resolve(uri, options)
-      configure_timeouts(h)
-      ssl!(h)
-
-      h
     end
 
     def read_response_body(http_request, response)
@@ -184,22 +196,6 @@ module URLCanonicalize
 
       raise URLCanonicalize::Exception::ResponseTooLarge,
             "Response body exceeds #{options[:max_body_bytes]} bytes"
-    end
-
-    def configure_timeouts(http)
-      http.open_timeout = options[:open_timeout]
-      http.read_timeout = options[:read_timeout]
-      http.write_timeout = options[:write_timeout]
-    end
-
-    def ssl!(http)
-      if uri.scheme == 'https'
-        http.use_ssl = true # Can generate exception
-        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        http.verify_hostname = true
-      else
-        http.use_ssl = false
-      end
     end
   end
 end

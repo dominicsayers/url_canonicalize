@@ -31,7 +31,30 @@ describe URLCanonicalize::Options do
   end
 
   it 'accepts supported overrides' do
-    expect(options_class.new(**overrides).to_h).to eq(overrides)
+    expect(options_class.new(**overrides).to_h).to include(overrides)
+  end
+
+  it 'accepts replacement request headers' do
+    headers = { 'User-Agent' => 'my-crawler/1.0' }
+
+    expect(options_class.new(headers: headers).to_h).to include(headers: headers)
+  end
+
+  it 'rejects headers that are not string pairs' do
+    [{ 'User-Agent' => :symbol }, { accept: 'text/html' }, %w[not a hash]].each do |headers|
+      expect { options_class.new(headers: headers) }
+        .to raise_error(ArgumentError, 'headers must be a Hash of String keys and String values')
+    end
+  end
+
+  it 'rejects loggers that cannot log' do
+    expect { options_class.new(logger: 'stdout') }
+      .to raise_error(ArgumentError, 'logger must respond to debug')
+  end
+
+  it 'rejects transports that cannot be called' do
+    expect { options_class.new(transport: 'net/http') }
+      .to raise_error(ArgumentError, 'transport must respond to call')
   end
 
   it 'rejects unknown options' do
@@ -59,8 +82,9 @@ describe URLCanonicalize::Options do
   it 'returns defensive copies of mutable values' do
     values = options.to_h
     values[:allowed_ports] << 3000
+    values[:headers]['X-Injected'] = 'true'
 
-    expect(options[:allowed_ports]).to eq([80, 443])
+    expect([options[:allowed_ports], options[:headers].key?('X-Injected')]).to eq([[80, 443], false])
   end
 
   describe URLCanonicalize do
