@@ -3,8 +3,8 @@
 module URI
   # URI having the HTTP protocol
   class HTTP
-    def canonicalize(**options)
-      new_url = URLCanonicalize.canonicalize(to_s, **options)
+    def canonicalize(**)
+      new_url = URLCanonicalize.canonicalize(to_s, **)
       ::URI.parse(new_url)
     end
   end

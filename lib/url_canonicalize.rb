@@ -23,12 +23,12 @@ module URLCanonicalize
   autoload :VERSION, 'url_canonicalize/version'
 
   class << self
-    def canonicalize(url, **options)
-      fetch(url, **options).url
+    def canonicalize(url, **)
+      fetch(url, **).url
     end
 
-    def fetch(url, **options)
-      URLCanonicalize::HTTP.new(url, **options).fetch
+    def fetch(url, **)
+      URLCanonicalize::HTTP.new(url, **).fetch
     end
   end
 end

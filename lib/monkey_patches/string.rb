@@ -2,7 +2,7 @@
 
 # Patch for Ruby's String class
 class String
-  def canonicalize(**options)
-    URLCanonicalize.canonicalize(self, **options)
+  def canonicalize(**)
+    URLCanonicalize.canonicalize(self, **)
   end
 end
