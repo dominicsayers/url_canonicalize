@@ -85,7 +85,7 @@ module URLCanonicalize
     end
 
     def handle_success
-      @canonical_url = relative_to_absolute(URLCanonicalize::LinkHeader.canonical(response))
+      @canonical_url = normalized(relative_to_absolute(URLCanonicalize::LinkHeader.canonical(response)))
 
       return enhanced_response if canonical_url || http_method == :get
 
@@ -135,7 +135,13 @@ module URLCanonicalize
     end
 
     def canonical_url
-      @canonical_url ||= relative_to_absolute(canonical_url_element&.[]('href'), document_base_url)
+      @canonical_url ||= normalized(relative_to_absolute(canonical_url_element&.[]('href'), document_base_url))
+    end
+
+    # Declared canonical URLs are returned to callers, so they get the same
+    # syntactic normalization as every requested URL
+    def normalized(url)
+      URLCanonicalize::URI.normalize(url) if url
     end
 
     # The first HTML link element whose rel tokens include "canonical", however

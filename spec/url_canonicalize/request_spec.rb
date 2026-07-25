@@ -93,7 +93,7 @@ describe URLCanonicalize::Request do
       it 'logs each request to the logger' do
         fetch
 
-        expect(log_lines).to include(match(%r{GET https://twitter.com 200}))
+        expect(log_lines).to include(match(%r{GET https://twitter.com/ 200}))
       end
 
       it 'does not write log lines to stdout' do
@@ -121,7 +121,7 @@ describe URLCanonicalize::Request do
 
     it 'follows permanent redirections' do
       url = 'http://twitter.com'
-      canonical_url = 'https://twitter.com'
+      canonical_url = 'https://twitter.com/'
 
       http = URLCanonicalize::HTTP.new(url)
       response = Net::HTTPPermanentRedirect.new('1.1', '301', '')
@@ -166,7 +166,7 @@ describe URLCanonicalize::Request do
 
     it 'follows canonical url metadata' do
       url = 'http://twitter.com'
-      canonical_url = 'https://twitter.com'
+      canonical_url = 'https://twitter.com/'
       html = "<html><head><link rel=\"canonical\" href=\"#{canonical_url}\" /></head></html>"
 
       http = URLCanonicalize::HTTP.new(url)
@@ -178,6 +178,24 @@ describe URLCanonicalize::Request do
       expect(http).to receive(:do_request).exactly(3).times.and_return(response)
 
       expect(URLCanonicalize.canonicalize(url)).to eq(canonical_url)
+    end
+
+    it 'prefers a canonical Link header over a conflicting HTML link element' do
+      url = 'http://twitter.com'
+      html = '<html><head><link rel="canonical" href="https://twitter.com/html"></head></html>'
+      http = URLCanonicalize::HTTP.new(url)
+      request = described_class.new(http)
+      response = Net::HTTPOK.new('1.1', '200', '')
+      response['Content-Type'] = 'text/html'
+      response['Link'] = '<https://twitter.com/header>; rel="canonical"'
+      allow(response).to receive(:body).and_return(html)
+
+      allow(request).to receive(:do_http_request).and_return(response)
+
+      result = request.with_uri(URLCanonicalize::URI.parse(url)).fetch
+
+      expect([result.class, result.url])
+        .to eq([URLCanonicalize::Response::CanonicalFound, 'https://twitter.com/header'])
     end
 
     it 'finds the canonical link among multiple links in a Link header' do
@@ -374,9 +392,9 @@ describe URLCanonicalize::Request do
     # Recent versions of URI do not barf when asked to parse http://$$$, http://_ or http://~ so I've commented those out
     # examples
     [
-      { url: 'http:',                       outcome: :exception_uri,          message: 'Missing host name in http:' },
+      { url: 'http:',                       outcome: :exception_uri,          message: "Absolute URI missing hierarchical segment: 'http:'" },
       { url: 'http:/',                      outcome: :exception_uri,          message: 'Missing host name in http:/' },
-      { url: 'http://',                     outcome: :exception_uri,          message: 'Empty host name in http://' },
+      { url: 'http://',                     outcome: :exception_uri,          message: "Absolute URI missing hierarchical segment: 'http://'" },
       # { url: 'http://$$$',                  outcome: :exception_uri,          message: 'URI::InvalidURIError: the scheme http does not accept registry part: $$$ (or bad hostname?)' },
       { url: 'http://-',                    outcome: :exception_failure,      message: 'getaddrinfo: Name or service not known', klass: SocketError },
       { url: 'http://.',                    outcome: :exception_failure,      message: 'getaddrinfo: No address associated with hostname', klass: SocketError },

@@ -88,6 +88,57 @@ Addressable::URI.canonicalize('http://www.twitter.com') # => #<Addressable::URI:
 Requiring `url_canonicalize` alone no longer patches any core class: if you
 relied on the extensions, add the extra require.
 
+## Normalization and canonicalization
+
+URLCanonicalize distinguishes two operations:
+
+- **Normalization** is syntactic: rewriting a URL into its RFC 3986 normal
+  form without any network access. Parsing and reference resolution use
+  Ruby's `URI` (strict); normalization uses `Addressable::URI#normalize`.
+- **Canonicalization** is discovery: fetching the URL, following redirects
+  and server-declared canonical links, and returning the normalized final
+  URL.
+
+Every URL is processed in this order:
+
+1. The input is stripped of surrounding whitespace and parsed. A leading
+   `scheme:` token is honored; an input without one is treated as a host
+   name and given `http://`. A colon elsewhere in the URL does not suppress
+   the default scheme. Non-HTTP(S) schemes raise
+   `URLCanonicalize::Exception::URI`.
+2. The URL is normalized (see below) and fetched with a `HEAD` request,
+   retried as `GET` where the server rejects `HEAD`.
+3. Redirects (any `3xx` with a usable `Location`, temporary or permanent)
+   are followed. The `Location` value is resolved against the request URL
+   per RFC 3986, so absolute, protocol-relative, root-relative,
+   path-relative and query-only forms all work.
+4. On a successful response, a canonical link is looked for in the `Link`
+   response header first, then in the HTML `<link rel="canonical">` element;
+   **the header wins when they conflict**. HTML links resolve against the
+   document's `<base href>` when one is declared, otherwise against the
+   request URL.
+5. A declared canonical URL is not trusted blindly: it is fetched and
+   validated itself. If fetching it fails, the declared canonical URL is
+   still returned, confirmed by the response that declared it.
+6. Redirects and followed canonical links share one hop budget and one
+   visited-URL set, so cycles and over-long chains terminate
+   deterministically. The returned URL is always normalized.
+
+Normalization makes these changes and no others:
+
+| Component | Rule |
+| --- | --- |
+| Scheme and host | Lowercased |
+| Internationalized host | Converted to punycode (`xn--…`) |
+| Default port (`:80`/`:443`) | Removed; other ports preserved |
+| Dot segments (`/./`, `/../`) | Resolved |
+| Percent-encoding | Uppercase hex; unreserved characters decoded; invalid characters encoded |
+| Empty path | Replaced by `/` |
+| Trailing slash | Preserved (`/a/` and `/a` stay distinct) |
+| Query string | Preserved verbatim — parameters are never reordered or dropped |
+| Fragment (`#…`) | Stripped — fragments are client-side state |
+| Userinfo (`user:pass@`) | Rejected as a security error at fetch time |
+
 ## Security and limits
 
 URLCanonicalize treats every fetched URL as untrusted, including redirect and
