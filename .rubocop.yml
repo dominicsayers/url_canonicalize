@@ -1,5 +1,4 @@
 ---
-inherit_from: .rubocop_todo.yml
 
 plugins:
   - rubocop-rake
@@ -43,6 +42,18 @@ Metrics/MethodLength:
 Naming/FileName:
   Description: 'Use snake_case for source file names.'
   Enabled: true
+
+RSpec/ExampleLength:
+  Max: 16
+
+RSpec/MessageSpies:
+  EnforcedStyle: receive
+
+RSpec/MultipleExpectations:
+  Max: 4
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 6
 
 Style/ModuleFunction:
   Description: 'Match the SonarCloud rule S7918, which prefers extend self.'

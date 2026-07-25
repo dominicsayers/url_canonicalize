@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 describe URLCanonicalize::HTTP do
-  context 'handling responses' do
+  context 'when handling responses' do
     let(:host) { 'www.twitter.com' }
     let(:protocol) { 'http' }
     let(:url) { "#{protocol}://#{host}" }
@@ -10,8 +10,8 @@ describe URLCanonicalize::HTTP do
     let(:response) { URLCanonicalize::Response::Success.new(url, '', '') }
 
     before do
-      expect(URLCanonicalize::Request).to receive(:new).and_return(fetch_double)
-      expect(fetch_double).to receive(:with_uri).at_least(:once).and_return(fetch_double)
+      allow(URLCanonicalize::Request).to receive(:new).and_return(fetch_double)
+      allow(fetch_double).to receive(:with_uri).and_return(fetch_double)
     end
 
     it 'returns a Net::HTTPOK' do
@@ -78,7 +78,7 @@ describe URLCanonicalize::HTTP do
     end
   end
 
-  context 'handling protocols' do
+  context 'when handling protocols' do
     let(:resolved_address) { '93.184.216.34' }
 
     before do

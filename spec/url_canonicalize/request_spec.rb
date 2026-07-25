@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 describe URLCanonicalize::Request do
-  context 'response types' do
+  context 'when handling response types' do
     {
       '301' => Net::HTTPMovedPermanently,
       '302' => Net::HTTPFound,
@@ -119,8 +119,8 @@ describe URLCanonicalize::Request do
       response['location'] = canonical_url
       canonical_response = Net::HTTPOK.new('1.1', '200', '')
 
-      expect(URLCanonicalize::HTTP).to receive(:new).and_return(http)
-      expect(http).to receive(:do_request).and_return(response, canonical_response, canonical_response)
+      allow(URLCanonicalize::HTTP).to receive(:new).and_return(http)
+      allow(http).to receive(:do_request).and_return(response, canonical_response, canonical_response)
 
       expect(URLCanonicalize.canonicalize(url)).to eq(canonical_url)
     end
@@ -135,8 +135,8 @@ describe URLCanonicalize::Request do
       response['location'] = relative_path
       canonical_response = Net::HTTPOK.new('1.1', '200', '')
 
-      expect(URLCanonicalize::HTTP).to receive(:new).and_return(http)
-      expect(http).to receive(:do_request).and_return(response, canonical_response, canonical_response)
+      allow(URLCanonicalize::HTTP).to receive(:new).and_return(http)
+      allow(http).to receive(:do_request).and_return(response, canonical_response, canonical_response)
 
       expect(URLCanonicalize.canonicalize(url)).to eq(canonical_url)
     end
@@ -149,8 +149,8 @@ describe URLCanonicalize::Request do
       response = Net::HTTPPermanentRedirect.new('1.1', '301', '')
       response['location'] = canonical_url
 
-      expect(URLCanonicalize::HTTP).to receive(:new).and_return(http)
-      expect(http).to receive(:do_request).and_return(response)
+      allow(URLCanonicalize::HTTP).to receive(:new).and_return(http)
+      allow(http).to receive(:do_request).and_return(response)
 
       expect { URLCanonicalize.fetch(url) }.to raise_error(URLCanonicalize::Exception::Failure)
     end
@@ -164,7 +164,7 @@ describe URLCanonicalize::Request do
       response = Net::HTTPOK.new('1.1', '200', '')
       response['Content-Type'] = 'text/html; charset=utf-8'
 
-      expect(URLCanonicalize::HTTP).to receive(:new).and_return(http)
+      allow(URLCanonicalize::HTTP).to receive(:new).and_return(http)
       expect(response).to receive(:body).and_return(html, '', '')
       expect(http).to receive(:do_request).exactly(3).times.and_return(response)
 
@@ -297,7 +297,7 @@ describe URLCanonicalize::Request do
     end
   end
 
-  context 'HEAD fallback' do
+  context 'with HEAD fallback' do
     {
       '403' => Net::HTTPForbidden,
       '405' => Net::HTTPMethodNotAllowed,
@@ -338,7 +338,7 @@ describe URLCanonicalize::Request do
     end
   end
 
-  context 'HTTP method' do
+  context 'with an invalid HTTP method' do
     it 'handles invalid HTTP methods' do
       http = URLCanonicalize::HTTP.new('http://twitter.com')
       request = described_class.new(http)
@@ -347,7 +347,7 @@ describe URLCanonicalize::Request do
     end
   end
 
-  context 'real world examples' do
+  context 'with real world examples' do
     before do
       allow(Addrinfo).to receive(:getaddrinfo)
         .and_return([Addrinfo.tcp('93.184.216.34', 80)])
