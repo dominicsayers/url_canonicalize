@@ -70,7 +70,7 @@ GEM
       regexp_parser (>= 2.0)
       rubocop (~> 1.86, >= 1.86.2)
     ruby-progressbar (1.13.0)
-    simplecov (1.0.2)
+    simplecov (1.0.3)
     unicode-display_width (2.6.0)
     webmock (3.26.2)
       addressable (>= 2.8.0)
