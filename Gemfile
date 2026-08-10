@@ -12,7 +12,7 @@ end
 
 group :test do
   gem 'rspec'
-  gem 'simplecov', '~> 1.0.0'
+  gem 'simplecov', '~> 1.1.0'
   gem 'webmock'
 end
 
