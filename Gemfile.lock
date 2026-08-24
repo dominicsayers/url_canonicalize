@@ -72,7 +72,7 @@ GEM
     ruby-progressbar (1.13.0)
     simplecov (1.1.1)
     unicode-display_width (2.6.0)
-    webmock (3.26.2)
+    webmock (3.26.3)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
